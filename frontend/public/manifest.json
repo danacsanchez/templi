@@ -1,0 +1,25 @@
+{
+  "short_name": "Templi",
+  "name": "Templi",
+  "icons": [
+    {
+      "src": "images/templi-logo-simplified-removebg-preview.png",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "images/templi-logo-simplified-removebg-preview.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "images/templi-logo-simplified-removebg-preview.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2c2c2c",
+  "background_color": "#f8f9fa"
+}

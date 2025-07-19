@@ -1,0 +1,590 @@
+import React, { useState } from 'react';
+
+const LandingPage = ({ onLoginClick }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isLoginHovered, setIsLoginHovered] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState(null); // ← AGREGAR ESTA LÍNEA
+
+  return (
+    <div style={styles.container}>
+      {/* Navigation Header */}
+      <header style={styles.header}>
+        {/* Logo Image */}
+        <div style={styles.logoContainer}>
+          <img 
+            src="/images/templi-logo.PNG" 
+            alt="Templi Logo" 
+            style={styles.logoImage}
+          />
+        </div>
+        
+        <div style={styles.navContainer}>
+          {/* Navigation Links */}
+          <nav style={styles.nav}>
+            <a href="#features" style={styles.navLink}>Features</a>
+            <a href="#about" style={styles.navLink}>About</a>
+          </nav>
+          
+          {/* Login Button */}
+          <button
+            onClick={onLoginClick}
+            style={{
+              ...styles.loginButton,
+              ...(isLoginHovered ? styles.loginButtonHover : {})
+            }}
+            onMouseEnter={() => setIsLoginHovered(true)}
+            onMouseLeave={() => setIsLoginHovered(false)}
+          >
+            Iniciar Sesión
+          </button>
+        </div>
+      </header>
+
+      {/* Hero Section Centrado */}
+      <main style={styles.main}>
+        <div style={styles.heroContent}>
+          {/* Magic Icon */}
+          <span className="material-symbols-outlined" style={styles.magicIcon}>
+            wand_stars
+          </span>
+
+          {/* Main Headline */}
+          <h1 style={styles.headline}>
+            Descarga lo que necesitas.
+            <br />
+            <span style={styles.headlineAccent}>Vende lo que sabes.</span>
+          </h1>
+          
+          {/* Subtitle */}
+          <p style={styles.subtitle}>
+            Explora una amplia colección de archivos útiles y listos para descargar, creados por personas que entienden lo que necesitas.
+          </p>
+
+          {/* CTA Button */}
+          <button
+            onClick={onLoginClick}
+            style={{
+              ...styles.ctaButton,
+              ...(isHovered ? styles.ctaButtonHover : {})
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)} // ← CORREGIR ESTA LÍNEA
+          >
+            <span style={styles.buttonText}>Unirse a Templi</span>
+            <span className="material-symbols-outlined" style={styles.buttonIcon}>
+              keyboard_arrow_right
+            </span>
+          </button>
+
+          {/* Secondary Info */}
+          <div style={styles.secondaryInfo}>
+            <span style={styles.infoText}>No se requiere tarjeta de crédito</span>
+            <span style={styles.separator}>•</span>
+            <span style={styles.infoText}>Explora gratis</span>
+          </div>
+        </div>
+      </main>
+
+      {/* Características Section */}
+      <section style={styles.caracteristicasSection}>
+        <div style={styles.caracteristicasContainer}>
+          {/* Left Side - Main Content */}
+          <div style={styles.leftContent}>
+            <p style={styles.categoryLabel}>• CARACTERÍSTICAS</p>
+            <h2 style={styles.sectionTitle}>
+              Tu espacio para trabajar, crear y organizar mejor
+            </h2>
+          </div>
+
+          {/* Right Side - Description */}
+          <div style={styles.rightContent}>
+            <p style={styles.sectionDescription}>
+              En Templi reunimos productos digitales listos para descargar, pensados para ayudarte a trabajar, organizarte o crear de forma más rápida y eficiente.
+            </p>
+          </div>
+        </div>
+
+        {/* Tarjetas de Características - REEMPLAZAR ESTA SECCIÓN */}
+        <div style={styles.cardsContainer}>
+          <div 
+            style={{
+              ...styles.card,
+              ...(hoveredCard === 'card1' ? styles.cardHover : {})
+            }}
+            onMouseEnter={() => setHoveredCard('card1')}
+            onMouseLeave={() => setHoveredCard(null)}
+          >
+            <div style={styles.cardIcon}>
+              <span className="material-symbols-outlined" style={styles.iconStyle}>
+                note_stack
+              </span>
+            </div>
+            <h3 style={styles.cardTitle}>Variedad de Productos Digitales</h3>
+            <p style={styles.cardDescription}>
+              Explora una amplia colección de productos digitales: PDFs, plantillas editables en Word y PowerPoint, imágenes de alta calidad y mucho más.
+            </p>
+          </div>
+
+          <div 
+            style={{
+              ...styles.card,
+              ...(hoveredCard === 'card2' ? styles.cardHover : {})
+            }}
+            onMouseEnter={() => setHoveredCard('card2')}
+            onMouseLeave={() => setHoveredCard(null)}
+          >
+            <div style={styles.cardIcon}>
+              <span className="material-symbols-outlined" style={styles.iconStyle}>
+                shopping_bag_speed
+              </span>
+            </div>
+            <h3 style={styles.cardTitle}>Fácil y Rápido</h3>
+            <p style={styles.cardDescription}>
+              Compra y descarga al instante. Sin esperas ni complicaciones, accede a tus archivos digitales de manera inmediata para comenzar a usarlos cuando quieras.
+            </p>
+          </div>
+
+          <div 
+            style={{
+              ...styles.card,
+              ...(hoveredCard === 'card3' ? styles.cardHover : {})
+            }}
+            onMouseEnter={() => setHoveredCard('card3')}
+            onMouseLeave={() => setHoveredCard(null)}
+          >
+            <div style={styles.cardIcon}>
+              <span className="material-symbols-outlined" style={styles.iconStyle}>
+                draw_collage
+              </span>
+            </div>
+            <h3 style={styles.cardTitle}>Diseños Profesionales</h3>
+            <p style={styles.cardDescription}>
+              Nuestros productos están diseñados para ayudarte a destacar. Desde documentos formales hasta creativos, todos listos para que los personalices y adaptes a tu estilo.
+            </p>
+          </div>
+
+          <div 
+            style={{
+              ...styles.card,
+              ...(hoveredCard === 'card4' ? styles.cardHover : {})
+            }}
+            onMouseEnter={() => setHoveredCard('card4')}
+            onMouseLeave={() => setHoveredCard(null)}
+          >
+            <div style={styles.cardIcon}>
+              <span className="material-symbols-outlined" style={styles.iconStyle}>
+                credit_card_heart
+              </span>
+            </div>
+            <h3 style={styles.cardTitle}>Compra Segura</h3>
+            <p style={styles.cardDescription}>
+              Tu seguridad es nuestra prioridad. Nuestra plataforma garantiza un proceso de compra seguro y confiable para que solo te preocupes por elegir lo que más te guste.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <p style={styles.footerText}>
+          © 2025 Templi. Todos los derechos reservados.
+        </p>
+      </footer>
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    minHeight: '100vh',
+    backgroundColor: '#fafafa',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    color: '#1d1d1f',
+    lineHeight: 1.4,
+  },
+
+  // Header - Actualizado
+  header: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: 'rgba(250, 250, 250, 0.8)',
+    backdropFilter: 'blur(20px)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+    padding: '16px 24px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  // Logo Container
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+
+  logoImage: {
+    height: '32px',
+    width: 'auto',
+    objectFit: 'contain',
+  },
+
+  // Navigation Container
+  navContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '24px',
+  },
+
+  nav: {
+    display: 'flex',
+    gap: '32px',
+  },
+
+  navLink: {
+    fontSize: '13px',
+    color: '#86868b',
+    textDecoration: 'none',
+    fontWeight: '400',
+    transition: 'color 0.2s ease',
+    cursor: 'pointer',
+  },
+
+  // Login Button
+  loginButton: {
+    backgroundColor: '#1d1d1f',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '16px',
+    padding: '8px 16px',
+    fontSize: '12px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+
+  loginButtonHover: {
+    backgroundColor: '#424245',
+    transform: 'translateY(-1px)',
+  },
+
+  // Main Content - Centrado
+  main: {
+    paddingTop: '120px',
+    paddingBottom: '80px',
+    paddingLeft: '24px',
+    paddingRight: '24px',
+    maxWidth: '800px',
+    margin: '0 auto',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 'calc(100vh - 200px)',
+    textAlign: 'center',
+  },
+
+  heroContent: {
+    maxWidth: '600px',
+    width: '100%',
+  },
+
+  // Magic Icon - Con animación
+  magicIcon: {
+    fontSize: '64px',
+    color: '#F4E391',
+    display: 'block',
+    marginBottom: '24px',
+    animation: 'float 3s ease-in-out infinite',
+  },
+
+  headline: {
+    fontSize: '56px',
+    fontWeight: '600',
+    lineHeight: '1.1',
+    margin: '0 0 32px 0',
+    letterSpacing: '-1.5px',
+    color: '#1d1d1f',
+  },
+
+  headlineAccent: {
+    color: '#86868b',
+  },
+
+  subtitle: {
+    fontSize: '18px',
+    fontWeight: '400',
+    color: '#86868b',
+    lineHeight: '1.3',
+    maxWidth: '500px',
+    margin: '0 auto 48px auto',
+  },
+
+  ctaButton: {
+    backgroundColor: '#1d1d1f',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '20px',
+    padding: '12px 28px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    marginBottom: '32px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+
+  ctaButtonHover: {
+    backgroundColor: '#424245',
+    transform: 'translateY(-1px)',
+  },
+
+  buttonText: {
+    color: '#ffffff',
+  },
+
+  buttonIcon: {
+    fontSize: '18px',
+    color: '#ffffff',
+  },
+
+  secondaryInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    justifyContent: 'center',
+  },
+
+  infoText: {
+    fontSize: '12px',
+    color: '#86868b',
+    fontWeight: '400',
+  },
+
+  separator: {
+    fontSize: '12px',
+    color: '#d2d2d7',
+  },
+
+  // Nueva Sección de Características
+  caracteristicasSection: {
+    padding: '100px 80px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+  },
+
+  caracteristicasContainer: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '40px',
+    alignItems: 'flex-start',
+    marginBottom: '80px', // ← Espacio antes de las tarjetas
+  },
+
+  // Lado Izquierdo
+  leftContent: {
+    textAlign: 'left',
+  },
+
+  categoryLabel: {
+    fontSize: '12px',
+    color: '#86868b',
+    fontWeight: '500',
+    margin: '0 0 8px 0', // ← Reducido de 16px a 8px para menos espacio
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase',
+  },
+
+  sectionTitle: {
+    fontSize: '32px', // ← Reducido de 40px a 32px
+    fontWeight: '600',
+    lineHeight: '1.2',
+    margin: '0',
+    color: '#1d1d1f',
+    letterSpacing: '-1px',
+  },
+
+  // Lado Derecho
+  rightContent: {
+    display: 'flex',
+    alignItems: 'center',
+    height: '100%',
+    textAlign: 'left', // ← Agregado para alinear texto a la izquierda
+  },
+
+  sectionDescription: {
+    fontSize: '16px', // ← Mantenido igual para equilibrar con el título más pequeño
+    color: '#86868b',
+    lineHeight: '1.5',
+    margin: '0',
+    fontWeight: '400',
+    textAlign: 'left', // ← Asegurar alineación a la izquierda
+  },
+
+  // Tarjetas de Características
+  cardsContainer: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)', // ← 4 columnas
+    gap: '24px',
+    marginTop: '40px',
+  },
+
+  card: {
+    backgroundColor: '#ffffff',
+    border: '1px solid rgba(0, 0, 0, 0.95)',
+    borderRadius: '12px',
+    padding: '24px',
+    textAlign: 'left',
+    transition: 'all 0.3s ease', // ← Transición suave
+    cursor: 'pointer', // ← Cambiado de 'default' a 'pointer'
+    transform: 'scale(1)', // ← Tamaño inicial
+  },
+
+  // Nuevo: Efecto hover para las tarjetas
+  cardHover: {
+    transform: 'scale(1.02)', // ← Crecer 2%
+    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)', // ← Sombra sutil
+    borderColor: 'rgba(0, 0, 0, 0.08)', // ← Borde ligeramente más visible
+  },
+
+  cardIcon: {
+    marginBottom: '16px',
+  },
+
+  iconStyle: {
+    fontSize: '32px',
+    color: '#1d1d1f',
+  },
+
+  cardTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+    margin: '0 0 12px 0',
+    lineHeight: '1.3',
+  },
+
+  cardDescription: {
+    fontSize: '14px',
+    color: '#86868b',
+    lineHeight: '1.4',
+    margin: '0',
+    fontWeight: '400',
+  },
+
+  // Footer
+  footer: {
+    padding: '40px 24px',
+    textAlign: 'center',
+    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+  },
+
+  footerText: {
+    fontSize: '12px',
+    color: '#86868b',
+    margin: 0,
+  },
+
+  // Responsive
+  '@media (max-width: 768px)': {
+    header: {
+      padding: '12px 16px',
+    },
+    
+    logoImage: {
+      height: '28px',
+    },
+    
+    navContainer: {
+      gap: '16px',
+    },
+    
+    nav: {
+      gap: '20px',
+    },
+    
+    navLink: {
+      fontSize: '12px',
+    },
+    
+    loginButton: {
+      padding: '6px 12px',
+      fontSize: '11px',
+    },
+    
+    main: {
+      paddingTop: '100px',
+      paddingBottom: '60px',
+    },
+    
+    magicIcon: {
+      fontSize: '56px',
+      marginBottom: '20px',
+      animation: 'float 3s ease-in-out infinite',
+    },
+    
+    headline: {
+      fontSize: '42px',
+    },
+    
+    subtitle: {
+      fontSize: '16px',
+      margin: '0 auto 40px auto',
+    },
+    
+    ctaButton: {
+      padding: '10px 24px',
+      fontSize: '13px',
+    },
+
+    // Responsive para Características
+    caracteristicasSection: {
+      padding: '60px 32px',
+    },
+
+    caracteristicasContainer: {
+      gridTemplateColumns: '1fr',
+      gap: '32px',
+      marginBottom: '60px', // ← Menos espacio en móvil
+    },
+
+    // Tarjetas responsive
+    cardsContainer: {
+      gridTemplateColumns: '1fr', // ← Una columna en móvil
+      gap: '20px',
+      marginTop: '32px',
+    },
+
+    card: {
+      padding: '20px',
+      textAlign: 'center', // ← Centrado en móvil
+    },
+
+    iconStyle: {
+      fontSize: '28px',
+    },
+
+    cardTitle: {
+      fontSize: '15px',
+      margin: '0 0 10px 0',
+    },
+
+    cardDescription: {
+      fontSize: '13px',
+    },
+
+    // Responsive para tablet
+    '@media (max-width: 1024px) and (min-width: 769px)': {
+      cardsContainer: {
+        gridTemplateColumns: 'repeat(2, 1fr)', // ← 2 columnas en tablet
+        gap: '20px',
+      },
+    },
+  },
+};
+
+export default LandingPage;

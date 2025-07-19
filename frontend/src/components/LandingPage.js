@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
-const LandingPage = ({ onLoginClick }) => {
+const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user y onLogout
   const [isHovered, setIsHovered] = useState(false);
   const [isLoginHovered, setIsLoginHovered] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState(null); // ← AGREGAR ESTA LÍNEA
+  const [hoveredCard, setHoveredCard] = useState(null);
 
   return (
     <div style={styles.container}>
@@ -25,18 +25,29 @@ const LandingPage = ({ onLoginClick }) => {
             <a href="#about" style={styles.navLink}>About</a>
           </nav>
           
-          {/* Login Button */}
-          <button
-            onClick={onLoginClick}
-            style={{
-              ...styles.loginButton,
-              ...(isLoginHovered ? styles.loginButtonHover : {})
-            }}
-            onMouseEnter={() => setIsLoginHovered(true)}
-            onMouseLeave={() => setIsLoginHovered(false)}
-          >
-            Iniciar Sesión
-          </button>
+          {/* Login Button o Saludo del Usuario */}
+          {user ? (
+            // Mostrar saludo si el usuario está logueado
+            <div style={styles.userGreeting}>
+              <span style={styles.greetingText}>¡Hola, {user.nombre}!</span>
+              <span className="material-symbols-outlined" style={styles.moodIcon}>
+                mood
+              </span>
+            </div>
+          ) : (
+            // Mostrar botón de login si no está logueado
+            <button
+              onClick={onLoginClick}
+              style={{
+                ...styles.loginButton,
+                ...(isLoginHovered ? styles.loginButtonHover : {})
+              }}
+              onMouseEnter={() => setIsLoginHovered(true)}
+              onMouseLeave={() => setIsLoginHovered(false)}
+            >
+              Iniciar Sesión
+            </button>
+          )}
         </div>
       </header>
 
@@ -60,17 +71,19 @@ const LandingPage = ({ onLoginClick }) => {
             Explora una amplia colección de archivos útiles y listos para descargar, creados por personas que entienden lo que necesitas.
           </p>
 
-          {/* CTA Button */}
+          {/* CTA Button - Cambiar texto si está logueado */}
           <button
-            onClick={onLoginClick}
+            onClick={user ? () => alert('Navegando al marketplace...') : onLoginClick}
             style={{
               ...styles.ctaButton,
               ...(isHovered ? styles.ctaButtonHover : {})
             }}
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)} // ← CORREGIR ESTA LÍNEA
+            onMouseLeave={() => setIsHovered(false)}
           >
-            <span style={styles.buttonText}>Unirse a Templi</span>
+            <span style={styles.buttonText}>
+              {user ? 'Explorar Marketplace' : 'Unirse a Templi'}
+            </span>
             <span className="material-symbols-outlined" style={styles.buttonIcon}>
               keyboard_arrow_right
             </span>
@@ -104,7 +117,7 @@ const LandingPage = ({ onLoginClick }) => {
           </div>
         </div>
 
-        {/* Tarjetas de Características - REEMPLAZAR ESTA SECCIÓN */}
+        {/* Tarjetas de Características */}
         <div style={styles.cardsContainer}>
           <div 
             style={{
@@ -487,6 +500,29 @@ const styles = {
     fontSize: '12px',
     color: '#86868b',
     margin: 0,
+  },
+
+  // Nuevo: Saludo del usuario
+  userGreeting: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 16px',
+    backgroundColor: 'rgba(29, 29, 31, 0.05)',
+    borderRadius: '16px',
+    border: '1px solid rgba(29, 29, 31, 0.1)'
+  },
+
+  greetingText: {
+    fontSize: '12px',
+    fontWeight: '500',
+    color: '#1d1d1f',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  moodIcon: {
+    fontSize: '16px',
+    color: '#000000ff' // Mismo color que el magic icon
   },
 
   // Responsive

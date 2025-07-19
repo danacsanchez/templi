@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
 
-const Login = ({ onLoginSuccess, onBackToHome }) => { // ← Agregado onBackToHome prop
+const Login = ({ onLoginSuccess, onBackToHome, onRegisterClick }) => { // ← Agregado onRegisterClick
   const [formData, setFormData] = useState({
     email: '',
     contraseña: ''
@@ -152,7 +152,12 @@ const Login = ({ onLoginSuccess, onBackToHome }) => { // ← Agregado onBackToHo
           <div style={styles.footerInfo}>
             <span style={styles.infoText}>¿Aún no tienes cuenta?</span>
             <span style={styles.separator}>•</span>
-            <span style={styles.linkText}>Regístrate aquí</span>
+            <span 
+              style={styles.linkText}
+              onClick={onRegisterClick} // ← Agregado onClick
+            >
+              Regístrate aquí
+            </span>
           </div>
 
         </form>

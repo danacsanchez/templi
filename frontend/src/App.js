@@ -1,66 +1,65 @@
 import React, { useState } from 'react';
-import Login from './components/Login';
-import ArchivoManager from './components/ArchivoManager';
 import LandingPage from './components/LandingPage';
+import Login from './components/Login';
+import Register from './components/Register'; // ← AGREGAR ESTA LÍNEA
 import VendedorDashboard from './components/VendedorDashboard';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
+import ArchivoManager from './components/ArchivoManager';
 import { authService } from './services/authService';
 import './App.css';
 
-function App() {
+const App = () => {
   const [currentPage, setCurrentPage] = useState('landing');
-  const [userInfo, setUserInfo] = useState(null);
-  
-  // Verificar autenticación al cargar
-  React.useEffect(() => {
-    const isAuthenticated = authService.isAuthenticated();
-    console.log('Usuario autenticado:', isAuthenticated);
-  }, []);
+  const [user, setUser] = useState(null);
 
   const handleLoginClick = () => {
     setCurrentPage('login');
   };
 
+  const handleRegisterClick = () => {
+    setCurrentPage('register');
+  };
+
   const handleLoginSuccess = (userData) => {
-    setUserInfo(userData);
+    setUser(userData.user);
     
-    // Redirigir basado en el rol del usuario
-    const userRole = userData.user.tipo || userData.user.rol;
-    console.log('Rol del usuario:', userRole);
+    const userType = userData.user.tipo_usuario || userData.user.tipo_usuario_id;
     
-    switch (userRole) {
-      case 'Vendedor':
-        setCurrentPage('vendedor-dashboard');
-        break;
-      case 'SuperAdmin':
-        setCurrentPage('superadmin-dashboard');
-        break;
-      case 'Admin':
-        setCurrentPage('superadmin-dashboard'); // Los Admin van al mismo dashboard que SuperAdmin
-        break;
-      case 'Cliente':
-      default:
-        setCurrentPage('cliente-dashboard'); // Por ahora usamos el dashboard de archivos
-        break;
+    if (userType === 3) {
+      setCurrentPage('superadmin-dashboard');
+    } else if (userType === 2) {
+      setCurrentPage('vendedor-dashboard');
+    } else {
+      setCurrentPage('cliente-dashboard');
     }
   };
 
   const handleLogout = () => {
     authService.removeToken();
-    setUserInfo(null);
+    setUser(null);
     setCurrentPage('landing');
   };
 
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'landing':
-        return <LandingPage onLoginClick={handleLoginClick} />;
+        return <LandingPage onLoginClick={handleLoginClick} />; // ← Sin user aún
       
       case 'login':
         return (
           <Login 
             onLoginSuccess={handleLoginSuccess} 
-            onBackToHome={() => setCurrentPage('landing')} // ← Esta función hace que regrese
+            onBackToHome={() => setCurrentPage('landing')}
+            onRegisterClick={handleRegisterClick}
+          />
+        );
+      
+      case 'register':
+        return (
+          <Register 
+            onRegisterSuccess={handleLoginSuccess}
+            onBackToHome={() => setCurrentPage('landing')}
+            onBackToLogin={() => setCurrentPage('login')}
           />
         );
       
@@ -71,35 +70,13 @@ function App() {
         return <SuperAdminDashboard onLogout={handleLogout} />;
       
       case 'cliente-dashboard':
+        // Para clientes, mostrar landing con datos del usuario
         return (
-          <div>
-            {/* Header para clientes */}
-            <div style={{
-              padding: '15px 20px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h2 style={{ margin: 0, fontSize: '24px' }}>templi - Panel Cliente</h2>
-              <button 
-                onClick={handleLogout}
-                style={{
-                  padding: '8px 16px',
-                  fontSize: '14px',
-                  color: 'white',
-                  backgroundColor: '#dc3545',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Cerrar Sesión
-              </button>
-            </div>
-            <ArchivoManager />
-          </div>
+          <LandingPage 
+            onLoginClick={handleLoginClick}
+            user={user} // ← Pasar datos del usuario
+            onLogout={handleLogout} // ← Pasar función de logout
+          />
         );
       
       default:
@@ -112,6 +89,6 @@ function App() {
       {renderCurrentPage()}
     </div>
   );
-}
+};
 
 export default App;

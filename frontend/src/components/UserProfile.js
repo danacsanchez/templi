@@ -40,9 +40,6 @@ const UserProfile = ({ user, onLogout, onBackToHome }) => {
             style={styles.userGreetingDisabled}
             disabled
           >
-            <span className="material-symbols-outlined" style={styles.profileIcon}>
-              account_circle
-            </span>
             <span style={styles.greetingTextDisabled}>Hola, {user.nombre}</span>
           </button>
         </div>

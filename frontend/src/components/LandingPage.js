@@ -57,8 +57,9 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // �
       </header>
 
       {/* Hero Section Centrado */}
-      <main style={styles.main}>
-        <div style={styles.heroContent}>
+      <section style={styles.heroSection}>
+        <main style={styles.main}>
+          <div style={styles.heroContent}>
           {/* Magic Icon */}
           <span className="material-symbols-outlined" style={styles.magicIcon}>
             wand_stars
@@ -73,10 +74,10 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // �
           
           {/* Wavy Line Decoration */}
           <div style={styles.wavyLine}>
-            <svg width="200" height="12" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="200" height="16" viewBox="0 0 200 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path 
-                d="M2 6C15 2 25 10 40 6C55 2 65 10 80 6C95 2 105 10 120 6C135 2 145 10 160 6C175 2 185 10 198 6" 
-                stroke="#FEAEE3" 
+                d="M2 8C12 3 18 13 30 8C42 3 48 13 60 8C72 3 78 13 90 8C102 3 108 13 120 8C132 3 138 13 150 8C162 3 168 13 180 8C188 5 194 11 198 8" 
+                stroke="#1d1d1f" 
                 strokeWidth="2.5" 
                 strokeLinecap="round"
               />
@@ -112,8 +113,9 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // �
             <span style={styles.separator}>•</span>
             <span style={styles.infoText}>Explora gratis</span>
           </div>
-        </div>
-      </main>
+          </div>
+        </main>
+      </section>
 
       {/* Características Section */}
       <section style={styles.caracteristicasSection}>
@@ -221,14 +223,14 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // �
           <div style={styles.acercaDeHeader}>
             <p style={styles.acercaDeCategoryLabel}>• ACERCA DE</p>
             <h2 style={styles.acercaDeSectionTitle}>
-              Lo que <span style={styles.hacemosUnderline}>hacemos</span> y <span style={styles.porqueUnderline}>porqué</span>
+              Templi es un espacio para <span style={styles.hacemosUnderline}>compartir</span> y <span style={styles.porqueUnderline}>descubrir</span>
             </h2>
           </div>
 
           {/* Description Section */}
           <div style={styles.acercaDeContent}>
             <p style={styles.acercaDeSectionDescription}>
-              Conoce un espacio hecho para compartir y descubrir contenido digital sin complicaciones. Ya sea que estés buscando recursos listos para descargar o quieras comenzar a vender tus propios archivos, aquí tienes un lugar donde todo es fácil, rápido y accesible. Desde PDFs útiles hasta plantillas editables, imágenes y más, creemos que cada archivo puede tener valor y encontrar a la persona que lo necesita.
+              Conoce un lugar hecho para que comprar o vender contenido digital sea sencillo. Ya sea que busques recursos listos para descargar o quieras vender tus propios archivos, aquí todo es fácil, rápido y accesible. Desde PDFs hasta plantillas editables e imágenes, creemos que cada archivo tiene un valor y puede llegar a quien lo necesita.
             </p>
 
             {/* Quote Section */}
@@ -276,7 +278,6 @@ const styles = {
     zIndex: 1000,
     backgroundColor: 'rgba(250, 250, 250, 0.8)',
     backdropFilter: 'blur(20px)',
-    borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
     padding: '16px 24px',
     display: 'flex',
     justifyContent: 'space-between',
@@ -334,10 +335,19 @@ const styles = {
     transform: 'translateY(-1px)',
   },
 
-  // Main Content - Centrado
-  main: {
+  // Hero Section - Full width background
+  heroSection: {
+    width: '100%',
+    background: `
+      linear-gradient(to bottom, rgba(250, 250, 250, 1) 0%, rgba(250, 250, 250, 0.95) 15%, rgba(250, 250, 250, 0.9) 25%, transparent 35%),
+      linear-gradient(135deg, rgba(250, 250, 250, 0.9) 0%, rgba(254, 174, 227, 0.25) 25%, rgba(244, 227, 145, 0.3) 50%, rgba(168, 218, 220, 0.25) 75%, rgba(250, 250, 250, 0.9) 100%)
+    `,
     paddingTop: '120px',
     paddingBottom: '80px',
+  },
+
+  // Main Content - Centrado
+  main: {
     paddingLeft: '24px',
     paddingRight: '24px',
     maxWidth: '800px',
@@ -357,7 +367,7 @@ const styles = {
   // Magic Icon - Con animación
   magicIcon: {
     fontSize: '64px',
-    color: '#F4E391',
+    color: '#1d1d1f',
     display: 'block',
     marginBottom: '24px',
     animation: 'float 3s ease-in-out infinite',
@@ -602,12 +612,12 @@ const styles = {
 
   // Underline styles for title words
   hacemosUnderline: {
-    borderBottom: '4px solid #FEAEE3',
+    borderBottom: '4px solid #F4E391',
     paddingBottom: '2px',
   },
 
   porqueUnderline: {
-    borderBottom: '4px solid #F4E391',
+    borderBottom: '4px solid #FEAEE3',
     paddingBottom: '2px',
   },
 
@@ -710,9 +720,18 @@ const styles = {
       fontSize: '11px',
     },
     
-    main: {
+    heroSection: {
       paddingTop: '100px',
       paddingBottom: '60px',
+      background: `
+        linear-gradient(to bottom, rgba(250, 250, 250, 1) 0%, rgba(250, 250, 250, 0.95) 15%, rgba(250, 250, 250, 0.9) 25%, transparent 35%),
+        linear-gradient(135deg, rgba(250, 250, 250, 0.9) 0%, rgba(254, 174, 227, 0.25) 25%, rgba(244, 227, 145, 0.3) 50%, rgba(168, 218, 220, 0.25) 75%, rgba(250, 250, 250, 0.9) 100%)
+      `,
+    },
+    
+    main: {
+      paddingTop: '0px',
+      paddingBottom: '0px',
     },
     
     magicIcon: {

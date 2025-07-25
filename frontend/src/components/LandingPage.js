@@ -214,6 +214,40 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // �
         </div>
       </section>
 
+      {/* Acerca de Section */}
+      <section id="about" style={styles.acercaDeSection}>
+        <div style={styles.acercaDeContainer}>
+          {/* Header Section */}
+          <div style={styles.acercaDeHeader}>
+            <p style={styles.acercaDeCategoryLabel}>• ACERCA DE</p>
+            <h2 style={styles.acercaDeSectionTitle}>
+              Lo que <span style={styles.hacemosUnderline}>hacemos</span> y <span style={styles.porqueUnderline}>porqué</span>
+            </h2>
+          </div>
+
+          {/* Description Section */}
+          <div style={styles.acercaDeContent}>
+            <p style={styles.acercaDeSectionDescription}>
+              Conoce un espacio hecho para compartir y descubrir contenido digital sin complicaciones. Ya sea que estés buscando recursos listos para descargar o quieras comenzar a vender tus propios archivos, aquí tienes un lugar donde todo es fácil, rápido y accesible. Desde PDFs útiles hasta plantillas editables, imágenes y más, creemos que cada archivo puede tener valor y encontrar a la persona que lo necesita.
+            </p>
+
+            {/* Quote Section */}
+            <blockquote style={styles.quote}>
+              ❝Ya seas estudiante, emprendedor o creativo digital, aquí hay algo para ti.❞
+            </blockquote>
+
+            {/* About Cards Image */}
+            <div style={styles.aboutImageContainer}>
+              <img 
+                src="/images/about-cards.png" 
+                alt="Acerca de Templi" 
+                style={styles.aboutImage}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer style={styles.footer}>
         <p style={styles.footerText}>
@@ -514,6 +548,93 @@ const styles = {
     fontWeight: '400',
   },
 
+  // Acerca de Section
+  acercaDeSection: {
+    padding: '100px 80px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+  },
+
+  acercaDeContainer: {
+    display: 'block',
+    marginBottom: '60px',
+  },
+
+  // Header Section - Acerca de
+  acercaDeHeader: {
+    textAlign: 'left',
+    marginBottom: '24px',
+  },
+
+  // Content Section - Acerca de
+  acercaDeContent: {
+    textAlign: 'left',
+  },
+
+  acercaDeCategoryLabel: {
+    fontSize: '12px',
+    color: '#86868b',
+    fontWeight: '500',
+    margin: '0 0 8px 0',
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase',
+  },
+
+  acercaDeSectionTitle: {
+    fontSize: '32px',
+    fontWeight: '600',
+    lineHeight: '1.2',
+    margin: '0',
+    color: '#1d1d1f',
+    letterSpacing: '-1px',
+  },
+
+  acercaDeSectionDescription: {
+    fontSize: '16px',
+    color: '#86868b',
+    lineHeight: '1.5',
+    margin: '0',
+    fontWeight: '400',
+    textAlign: 'left',
+    maxWidth: '100%',
+  },
+
+  // Underline styles for title words
+  hacemosUnderline: {
+    borderBottom: '4px solid #FEAEE3',
+    paddingBottom: '2px',
+  },
+
+  porqueUnderline: {
+    borderBottom: '4px solid #F4E391',
+    paddingBottom: '2px',
+  },
+
+  quote: {
+    fontSize: '18px',
+    fontWeight: '400',
+    color: '#1d1d1f',
+    fontStyle: 'normal',
+    margin: '24px 0 0 0',
+    lineHeight: '1.4',
+    maxWidth: '100%',
+    paddingLeft: '0',
+  },
+
+  // About Cards Image Styles
+  aboutImageContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginTop: '40px',
+    width: '100%',
+  },
+
+  aboutImage: {
+    maxWidth: '70%',
+    height: 'auto',
+  },
+
   // Footer
   footer: {
     padding: '40px 24px',
@@ -648,6 +769,41 @@ const styles = {
 
     cardDescription: {
       fontSize: '13px',
+    },
+
+    // Responsive para Acerca de
+    acercaDeSection: {
+      padding: '60px 32px',
+    },
+
+    acercaDeContainer: {
+      marginBottom: '60px',
+    },
+
+    acercaDeHeader: {
+      marginBottom: '20px',
+    },
+
+    acercaDeSectionTitle: {
+      fontSize: '28px',
+    },
+
+    acercaDeSectionDescription: {
+      fontSize: '15px',
+    },
+
+    quote: {
+      fontSize: '17px',
+      margin: '20px 0 0 0',
+    },
+
+    // Responsive para About Image
+    aboutImageContainer: {
+      marginTop: '32px',
+    },
+
+    aboutImage: {
+      maxWidth: '80%',
     },
 
     // Responsive para tablet

@@ -1,6 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const UserProfile = ({ user, onLogout, onBackToHome }) => {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
+    onLogout();
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
+  };
   return (
     <div style={styles.container}>
       {/* Navigation Header */}
@@ -36,111 +50,109 @@ const UserProfile = ({ user, onLogout, onBackToHome }) => {
 
       {/* Main Content */}
       <main style={styles.main}>
-        <div style={styles.profileContainer}>
-          {/* Profile Header */}
-          <div style={styles.profileHeader}>
-            <div style={styles.avatarContainer}>
-              <span className="material-symbols-outlined" style={styles.avatarIcon}>
-                account_circle
-              </span>
-            </div>
-            <h1 style={styles.userName}>Hola, {user.nombre}</h1>
-            <p style={styles.userEmail}>{user.email}</p>
+        {/* Back to Home Button */}
+        <button 
+          onClick={onBackToHome}
+          style={styles.backButton}
+        >
+          <span className="material-symbols-outlined" style={styles.backIcon}>
+            arrow_back
+          </span>
+          Volver al inicio
+        </button>
+
+        {/* Profile Header */}
+        <div style={styles.profileHeader}>
+          <h1 style={styles.welcomeTitle}>Bienvenido a tu perfil, {user.nombre}</h1>
+          <div style={styles.wavyLine}>
+            <svg width="120" height="8" viewBox="0 0 120 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path 
+                d="M1 4C10 1 20 7 30 4C40 1 50 7 60 4C70 1 80 7 90 4C100 1 110 7 119 4" 
+                stroke="#F4E391" 
+                strokeWidth="2" 
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
+          <p style={styles.subtitle}>
+            Aquí puedes revisar tu información personal y salir de tu cuenta cuando lo necesites.
+          </p>
+        </div>
 
-          {/* Profile Content */}
-          <div style={styles.profileContent}>
-            {/* Account Information Section */}
-            <section style={styles.section}>
-              <h2 style={styles.sectionTitle}>Información de la cuenta</h2>
-              <div style={styles.infoGrid}>
-                <div style={styles.infoItem}>
-                  <span style={styles.infoLabel}>Nombre completo</span>
-                  <span style={styles.infoValue}>{user.nombre}</span>
-                </div>
-                <div style={styles.infoItem}>
-                  <span style={styles.infoLabel}>Correo electrónico</span>
-                  <span style={styles.infoValue}>{user.email}</span>
-                </div>
-                <div style={styles.infoItem}>
-                  <span style={styles.infoLabel}>Tipo de cuenta</span>
-                  <span style={styles.infoValue}>
-                    {user.tipoUsuario === 1 ? 'Administrador' : 
-                     user.tipoUsuario === 2 ? 'Vendedor' : 'Usuario'}
-                  </span>
-                </div>
-                <div style={styles.infoItem}>
-                  <span style={styles.infoLabel}>Miembro desde</span>
-                  <span style={styles.infoValue}>
-                    {new Date(user.fechaCreacion).toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </span>
-                </div>
-              </div>
-            </section>
+        {/* User Info */}
+        <div style={styles.userInfo}>
+          <p style={styles.userEmail}>{user.email}</p>
+          <p style={styles.userStatus}>
+            <span className="material-symbols-outlined" style={styles.statusIcon}>
+              asterisk
+            </span>
+            Actualmente estás registrado como comprador.
+          </p>
+        </div>
 
-            {/* Account Actions Section */}
-            <section style={styles.section}>
-              <h2 style={styles.sectionTitle}>Acciones de cuenta</h2>
-              <div style={styles.actionsContainer}>
-                <button 
-                  onClick={onBackToHome}
-                  style={styles.backToHomeButton}
-                >
-                  <span className="material-symbols-outlined" style={styles.actionIcon}>
-                    arrow_back
-                  </span>
-                  Volver al inicio
-                </button>
-                <button style={styles.actionButton}>
-                  <span className="material-symbols-outlined" style={styles.actionIcon}>
-                    edit
-                  </span>
-                  Editar perfil
-                </button>
-                <button style={styles.actionButton}>
-                  <span className="material-symbols-outlined" style={styles.actionIcon}>
-                    lock
-                  </span>
-                  Cambiar contraseña
-                </button>
-                <button style={styles.actionButton}>
-                  <span className="material-symbols-outlined" style={styles.actionIcon}>
-                    download
-                  </span>
-                  Mis descargas
-                </button>
-                {user.tipoUsuario === 2 && (
-                  <button style={styles.actionButton}>
-                    <span className="material-symbols-outlined" style={styles.actionIcon}>
-                      store
-                    </span>
-                    Mis productos
-                  </button>
-                )}
-              </div>
-            </section>
-
-            {/* Logout Section */}
-            <section style={styles.section}>
-              <div style={styles.logoutContainer}>
-                <button
-                  onClick={onLogout}
-                  style={styles.logoutButton}
-                >
-                  <span className="material-symbols-outlined" style={styles.logoutIcon}>
-                    logout
-                  </span>
-                  Cerrar sesión
-                </button>
-              </div>
-            </section>
-          </div>
+        {/* Logout Section */}
+        <div style={styles.logoutSection}>
+          <p style={styles.logoutQuestion}>¿Terminaste por hoy? Puedes cerrar sesión aquí</p>
+          <button
+            onClick={handleLogoutClick}
+            style={styles.logoutButton}
+          >
+            <span className="material-symbols-outlined" style={styles.logoutIcon}>
+              logout
+            </span>
+            Cerrar sesión
+          </button>
         </div>
       </main>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            {/* Close Button */}
+            <button 
+              onClick={handleCancelLogout}
+              style={styles.closeButton}
+            >
+              <span className="material-symbols-outlined" style={styles.closeIcon}>
+                close
+              </span>
+            </button>
+
+            {/* Modal Body */}
+            <div style={styles.modalBody}>
+              {/* Goodbye Message */}
+              <div style={styles.goodbyeMessage}>
+                <span className="material-symbols-outlined" style={styles.wavingIcon}>
+                  waving_hand
+                </span>
+                <span style={styles.goodbyeText}>¡Hasta luego!</span>
+              </div>
+
+              {/* Confirmation Text */}
+              <p style={styles.confirmationText}>
+                Si estás seguro de cerrar sesión, haz clic abajo. ¡Nos vemos pronto!
+              </p>
+
+              {/* Action Buttons */}
+              <div style={styles.modalButtons}>
+                <button
+                  onClick={handleCancelLogout}
+                  style={styles.cancelButton}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirmLogout}
+                  style={styles.confirmButton}
+                >
+                  Sí, cerrar sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -232,166 +244,228 @@ const styles = {
     paddingBottom: '80px',
     paddingLeft: '24px',
     paddingRight: '24px',
-    maxWidth: '800px',
+    maxWidth: '600px',
     margin: '0 auto',
+    textAlign: 'left',
   },
 
-  profileContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: '20px',
-    padding: '40px',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+  // Back Button
+  backButton: {
+    backgroundColor: 'transparent',
+    color: '#86868b',
+    border: 'none',
+    borderRadius: '8px',
+    padding: '6px 8px',
+    fontSize: '12px',
+    fontWeight: '400',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    marginBottom: '32px',
+    alignSelf: 'flex-start',
+  },
+
+  backIcon: {
+    fontSize: '14px',
   },
 
   // Profile Header
   profileHeader: {
-    textAlign: 'center',
     marginBottom: '40px',
-    paddingBottom: '32px',
-    borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
   },
 
-  avatarContainer: {
-    marginBottom: '16px',
-  },
-
-  avatarIcon: {
-    fontSize: '80px',
-    color: '#86868b',
-  },
-
-  userName: {
-    fontSize: '32px',
+  welcomeTitle: {
+    fontSize: '28px',
     fontWeight: '600',
-    margin: '0 0 8px 0',
+    lineHeight: '1.2',
+    margin: '0 0 12px 0',
     color: '#1d1d1f',
+    letterSpacing: '-0.5px',
   },
 
-  userEmail: {
-    fontSize: '16px',
-    color: '#86868b',
-    margin: 0,
-  },
-
-  // Profile Content
-  profileContent: {
+  // Wavy Line (aligned to the left)
+  wavyLine: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: '32px',
+    justifyContent: 'flex-start',
+    margin: '12px 0 16px 0',
+    opacity: 0.8,
+    marginLeft: '0', // Alineado a la izquierda
   },
 
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-
-  sectionTitle: {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#1d1d1f',
-    margin: 0,
-  },
-
-  // Info Grid
-  infoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '16px',
-  },
-
-  infoItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    padding: '16px',
-    backgroundColor: '#f8f8f8',
-    borderRadius: '12px',
-  },
-
-  infoLabel: {
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#86868b',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-
-  infoValue: {
+  subtitle: {
     fontSize: '14px',
-    fontWeight: '500',
-    color: '#1d1d1f',
+    fontWeight: '400',
+    color: '#86868b',
+    lineHeight: '1.4',
+    margin: '0',
+    maxWidth: '480px',
   },
 
-  // Actions
-  actionsContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '12px',
-  },
-
-  actionButton: {
-    backgroundColor: '#f8f8f8',
-    color: '#1d1d1f',
-    border: 'none',
-    borderRadius: '12px',
-    padding: '16px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
+  // User Info
+  userInfo: {
+    marginBottom: '40px',
     textAlign: 'left',
   },
 
-  backToHomeButton: {
+  userEmail: {
+    fontSize: '14px',
+    color: '#1d1d1f',
+    margin: '0 0 4px 0',
+    fontWeight: '400',
+  },
+
+  userStatus: {
+    fontSize: '14px',
+    color: '#1d1d1f',
+    margin: 0,
+    fontWeight: '400',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+
+  statusIcon: {
+    fontSize: '14px',
+    color: '#1d1d1f',
+  },
+
+  // Logout Section
+  logoutSection: {
+    textAlign: 'left',
+    paddingTop: '32px',
+    borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+  },
+
+  logoutQuestion: {
+    fontSize: '14px',
+    color: '#86868b',
+    margin: '0 0 16px 0',
+    fontWeight: '400',
+  },
+
+  logoutButton: {
     backgroundColor: '#1d1d1f',
     color: '#ffffff',
     border: 'none',
     borderRadius: '12px',
-    padding: '16px',
-    fontSize: '14px',
+    padding: '8px 20px',
+    fontSize: '12px',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    textAlign: 'left',
+    gap: '6px',
   },
 
-  actionIcon: {
+  logoutIcon: {
+    fontSize: '14px',
+    color: '#ffffff',
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+  },
+
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: '16px',
+    padding: '32px',
+    maxWidth: '400px',
+    width: '90%',
+    position: 'relative',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '4px',
+    borderRadius: '4px',
+    transition: 'background-color 0.2s ease',
+  },
+
+  closeIcon: {
     fontSize: '20px',
     color: '#86868b',
   },
 
-  // Logout
-  logoutContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    paddingTop: '16px',
-    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+  modalBody: {
+    marginTop: '16px',
+    textAlign: 'center',
   },
 
-  logoutButton: {
-    backgroundColor: '#ff4757',
-    color: '#ffffff',
-    border: 'none',
+  goodbyeMessage: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    marginBottom: '20px',
+  },
+
+  wavingIcon: {
+    fontSize: '24px',
+    color: '#1d1d1f',
+  },
+
+  goodbyeText: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+  },
+
+  confirmationText: {
+    fontSize: '13px',
+    color: '#86868b',
+    lineHeight: '1.5',
+    margin: '0 0 32px 0',
+    fontWeight: '400',
+  },
+
+  modalButtons: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'center',
+  },
+
+  cancelButton: {
+    backgroundColor: '#ffffff',
+    color: '#1d1d1f',
+    border: '1px solid #d1d1d6',
     borderRadius: '12px',
-    padding: '12px 24px',
-    fontSize: '14px',
+    padding: '10px 20px',
+    fontSize: '13px',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
   },
 
-  logoutIcon: {
-    fontSize: '18px',
+  confirmButton: {
+    backgroundColor: '#1d1d1f',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '10px 20px',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
 
   // Responsive
@@ -415,26 +489,55 @@ const styles = {
     main: {
       paddingLeft: '16px',
       paddingRight: '16px',
+      paddingTop: '100px',
     },
 
-    profileContainer: {
-      padding: '24px',
-    },
-
-    infoGrid: {
-      gridTemplateColumns: '1fr',
-    },
-
-    actionsContainer: {
-      gridTemplateColumns: '1fr',
-    },
-
-    avatarIcon: {
-      fontSize: '64px',
-    },
-
-    userName: {
+    welcomeTitle: {
       fontSize: '24px',
+      margin: '0 0 10px 0',
+    },
+
+    subtitle: {
+      fontSize: '13px',
+    },
+
+    backButton: {
+      fontSize: '11px',
+      padding: '4px 6px',
+    },
+
+    backIcon: {
+      fontSize: '12px',
+    },
+
+    userInfo: {
+      marginBottom: '32px',
+    },
+
+    userEmail: {
+      fontSize: '13px',
+    },
+
+    userStatus: {
+      fontSize: '13px',
+    },
+
+    statusIcon: {
+      fontSize: '13px',
+    },
+
+    wavyLine: {
+      marginLeft: '0', // Alineado a la izquierda en móvil también
+    },
+
+    logoutQuestion: {
+      fontSize: '13px',
+      margin: '0 0 16px 0',
+    },
+
+    logoutButton: {
+      padding: '6px 16px',
+      fontSize: '11px',
     },
   },
 };

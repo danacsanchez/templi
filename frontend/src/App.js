@@ -5,6 +5,7 @@ import Register from './components/Register'; // ← AGREGAR ESTA LÍNEA
 import VendedorDashboard from './components/VendedorDashboard';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import ArchivoManager from './components/ArchivoManager';
+import UserProfile from './components/UserProfile'; // ← AGREGAR UserProfile
 import { authService } from './services/authService';
 import './App.css';
 
@@ -32,6 +33,10 @@ const App = () => {
     } else {
       setCurrentPage('cliente-dashboard');
     }
+  };
+
+  const handleProfileClick = () => {
+    setCurrentPage('user-profile');
   };
 
   const handleLogout = () => {
@@ -76,6 +81,16 @@ const App = () => {
             onLoginClick={handleLoginClick}
             user={user} // ← Pasar datos del usuario
             onLogout={handleLogout} // ← Pasar función de logout
+            onProfileClick={handleProfileClick} // ← Pasar función para ir al perfil
+          />
+        );
+      
+      case 'user-profile':
+        return (
+          <UserProfile 
+            user={user}
+            onLogout={handleLogout}
+            onBackToHome={() => setCurrentPage('cliente-dashboard')}
           />
         );
       

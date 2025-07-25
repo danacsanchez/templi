@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user y onLogout
+const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // ← Agregar onProfileClick
   const [isHovered, setIsHovered] = useState(false);
   const [isLoginHovered, setIsLoginHovered] = useState(false);
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -21,19 +21,24 @@ const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user 
         <div style={styles.navContainer}>
           {/* Navigation Links */}
           <nav style={styles.nav}>
-            <a href="#features" style={styles.navLink}>Features</a>
-            <a href="#about" style={styles.navLink}>About</a>
+            <a href="#features" style={styles.navLink}>Características</a>
+            <a href="#about" style={styles.navLink}>Acerca de</a>
           </nav>
           
-          {/* Login Button o Saludo del Usuario */}
+          {/* Login Button o Botón de Perfil */}
           {user ? (
-            // Mostrar saludo si el usuario está logueado
-            <div style={styles.userGreeting}>
-              <span style={styles.greetingText}>¡Hola, {user.nombre}!</span>
-              <span className="material-symbols-outlined" style={styles.moodIcon}>
-                mood
-              </span>
-            </div>
+            // Mostrar botón de perfil si el usuario está logueado
+            <button
+              onClick={onProfileClick}
+              style={{
+                ...styles.userGreeting,
+                ...(isLoginHovered ? styles.userGreetingHover : {})
+              }}
+              onMouseEnter={() => setIsLoginHovered(true)}
+              onMouseLeave={() => setIsLoginHovered(false)}
+            >
+              <span style={styles.greetingText}>Hola, {user.nombre}</span>
+            </button>
           ) : (
             // Mostrar botón de login si no está logueado
             <button
@@ -65,6 +70,18 @@ const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user 
             <br />
             <span style={styles.headlineAccent}>Vende lo que sabes.</span>
           </h1>
+          
+          {/* Wavy Line Decoration */}
+          <div style={styles.wavyLine}>
+            <svg width="200" height="12" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path 
+                d="M2 6C15 2 25 10 40 6C55 2 65 10 80 6C95 2 105 10 120 6C135 2 145 10 160 6C175 2 185 10 198 6" 
+                stroke="#FEAEE3" 
+                strokeWidth="2.5" 
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
           
           {/* Subtitle */}
           <p style={styles.subtitle}>
@@ -128,7 +145,7 @@ const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user 
             onMouseLeave={() => setHoveredCard(null)}
           >
             <div style={styles.cardIcon}>
-              <span className="material-symbols-outlined" style={styles.iconStyle}>
+              <span className="material-symbols-outlined" style={{...styles.iconStyle, color: '#A8DADC'}}>
                 note_stack
               </span>
             </div>
@@ -147,7 +164,7 @@ const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user 
             onMouseLeave={() => setHoveredCard(null)}
           >
             <div style={styles.cardIcon}>
-              <span className="material-symbols-outlined" style={styles.iconStyle}>
+              <span className="material-symbols-outlined" style={{...styles.iconStyle, color: '#B8E6B8'}}>
                 shopping_bag_speed
               </span>
             </div>
@@ -166,7 +183,7 @@ const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user 
             onMouseLeave={() => setHoveredCard(null)}
           >
             <div style={styles.cardIcon}>
-              <span className="material-symbols-outlined" style={styles.iconStyle}>
+              <span className="material-symbols-outlined" style={{...styles.iconStyle, color: '#D4B5D4'}}>
                 draw_collage
               </span>
             </div>
@@ -185,7 +202,7 @@ const LandingPage = ({ onLoginClick, user, onLogout }) => { // ← Agregar user 
             onMouseLeave={() => setHoveredCard(null)}
           >
             <div style={styles.cardIcon}>
-              <span className="material-symbols-outlined" style={styles.iconStyle}>
+              <span className="material-symbols-outlined" style={{...styles.iconStyle, color: '#FFB5C1'}}>
                 credit_card_heart
               </span>
             </div>
@@ -325,6 +342,14 @@ const styles = {
     color: '#86868b',
   },
 
+  // Wavy Line Decoration
+  wavyLine: {
+    display: 'flex',
+    justifyContent: 'center',
+    margin: '16px 0 24px 0',
+    opacity: 0.8,
+  },
+
   subtitle: {
     fontSize: '18px',
     fontWeight: '400',
@@ -448,20 +473,20 @@ const styles = {
 
   card: {
     backgroundColor: '#ffffff',
-    border: '1px solid rgba(0, 0, 0, 0.95)',
+    border: 'none',
     borderRadius: '12px',
     padding: '24px',
     textAlign: 'left',
     transition: 'all 0.3s ease', // ← Transición suave
     cursor: 'pointer', // ← Cambiado de 'default' a 'pointer'
     transform: 'scale(1)', // ← Tamaño inicial
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)', // ← Sombra sutil para definir las tarjetas
   },
 
   // Nuevo: Efecto hover para las tarjetas
   cardHover: {
     transform: 'scale(1.02)', // ← Crecer 2%
-    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)', // ← Sombra sutil
-    borderColor: 'rgba(0, 0, 0, 0.08)', // ← Borde ligeramente más visible
+    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.12)', // ← Sombra más pronunciada
   },
 
   cardIcon: {
@@ -469,7 +494,7 @@ const styles = {
   },
 
   iconStyle: {
-    fontSize: '32px',
+    fontSize: '40px',
     color: '#1d1d1f',
   },
 
@@ -502,7 +527,7 @@ const styles = {
     margin: 0,
   },
 
-  // Nuevo: Saludo del usuario
+  // Nuevo: Botón de perfil del usuario
   userGreeting: {
     display: 'flex',
     alignItems: 'center',
@@ -510,7 +535,19 @@ const styles = {
     padding: '8px 16px',
     backgroundColor: 'rgba(29, 29, 31, 0.05)',
     borderRadius: '16px',
-    border: '1px solid rgba(29, 29, 31, 0.1)'
+    border: '1px solid rgba(29, 29, 31, 0.1)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+
+  userGreetingHover: {
+    backgroundColor: 'rgba(29, 29, 31, 0.08)',
+    transform: 'translateY(-1px)',
+  },
+
+  profileIcon: {
+    fontSize: '16px',
+    color: '#86868b',
   },
 
   greetingText: {
@@ -601,7 +638,7 @@ const styles = {
     },
 
     iconStyle: {
-      fontSize: '28px',
+      fontSize: '36px',
     },
 
     cardTitle: {

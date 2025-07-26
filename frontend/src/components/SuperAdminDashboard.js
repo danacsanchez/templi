@@ -1,32 +1,254 @@
-import React from 'react';
+import React, { useState } from 'react';
+import CategoriasArchivoTable from './CategoriasArchivoTable';
 
-const SuperAdminDashboard = ({ onLogout }) => {
+const SuperAdminDashboard = ({ onLogout, user }) => {
+  const [openDropdowns, setOpenDropdowns] = useState({
+    archivos: false,
+    usuarios: false,
+    transacciones: false
+  });
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [selectedSection, setSelectedSection] = useState(null);
+
+  const toggleDropdown = (section) => {
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   return (
     <div style={styles.container}>
-      {/* Header */}
-      <div style={styles.header}>
-        <h2 style={styles.headerTitle}>templi - Panel SuperAdmin</h2>
-        <button onClick={onLogout} style={styles.logoutButton}>
-          Cerrar Sesión
-        </button>
-      </div>
-      
-      {/* Contenido principal */}
-      <div style={styles.content}>
-        <div style={styles.card}>
-          <h1 style={styles.mainText}>SUPERADMIN WORKS</h1>
-          <p style={styles.subtitle}>
-            ✅ Sistema de autenticación funcionando correctamente
-          </p>
-          <p style={styles.description}>
-            Este es el dashboard para usuarios con rol de <strong>SuperAdmin</strong>
-          </p>
-          <div style={styles.features}>
-            <p>🔧 Gestión completa del sistema</p>
-            <p>👥 Administración de usuarios</p>
-            <p>⚙️ Configuraciones avanzadas</p>
+      {/* Sidebar con logo y navegación */}
+      <aside style={styles.sidebar}>
+        {/* Logo en la parte superior - SIN BORDE */}
+        <div style={styles.sidebarLogoContainer}>
+          <img 
+            src="/images/templi-logo.PNG" 
+            alt="Templi Logo" 
+            style={styles.logoImage}
+          />
+        </div>
+
+        {/* Menú de navegación */}
+        <div style={styles.menuContainer}>
+          {/* Dashboard */}
+          <div 
+            style={{
+              ...styles.menuItem,
+              backgroundColor: hoveredItem === 'dashboard' ? '#f5f5f7' : 'transparent'
+            }}
+            onMouseEnter={() => setHoveredItem('dashboard')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <span className="material-symbols-outlined" style={styles.menuIcon}>dashboard</span>
+            <span style={styles.menuText}>Dashboard</span>
+          </div>
+
+          {/* Administración de Archivos */}
+          <div style={styles.menuSection}>
+            <div 
+              style={{
+                ...styles.menuDropdownHeader,
+                backgroundColor: hoveredItem === 'archivos-header' ? '#f0f0f0' : '#f9f9f9'
+              }}
+              onClick={() => toggleDropdown('archivos')}
+              onMouseEnter={() => setHoveredItem('archivos-header')}
+              onMouseLeave={() => setHoveredItem(null)}
+            >
+              <span style={styles.dropdownTitle}>Administración de Archivos</span>
+              <span 
+                className="material-symbols-outlined" 
+                style={{
+                  ...styles.dropdownIcon,
+                  transform: openDropdowns.archivos ? 'rotate(180deg)' : 'rotate(0deg)'
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+            
+            {openDropdowns.archivos && (
+              <div style={styles.dropdownContent}>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'archivos' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('archivos')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>deployed_code</span>
+                  <span style={styles.menuText}>Archivos</span>
+                </div>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'imagenes' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('imagenes')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>image</span>
+                  <span style={styles.menuText}>Imágenes de Archivos</span>
+                </div>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'categorias' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'categorias' ? 600 : 400
+                  }}
+                  onMouseEnter={() => setHoveredItem('categorias')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('categorias')}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>category</span>
+                  <span style={styles.menuText}>Categorías</span>
+                </div>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'extensiones' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('extensiones')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>type_specimen</span>
+                  <span style={styles.menuText}>Extensiones</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Gestión de Usuarios */}
+          <div style={styles.menuSection}>
+            <div 
+              style={{
+                ...styles.menuDropdownHeader,
+                backgroundColor: hoveredItem === 'usuarios-header' ? '#f0f0f0' : '#f9f9f9'
+              }}
+              onClick={() => toggleDropdown('usuarios')}
+              onMouseEnter={() => setHoveredItem('usuarios-header')}
+              onMouseLeave={() => setHoveredItem(null)}
+            >
+              <span style={styles.dropdownTitle}>Gestión de Usuarios</span>
+              <span 
+                className="material-symbols-outlined" 
+                style={{
+                  ...styles.dropdownIcon,
+                  transform: openDropdowns.usuarios ? 'rotate(180deg)' : 'rotate(0deg)'
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+            
+            {openDropdowns.usuarios && (
+              <div style={styles.dropdownContent}>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'usuarios' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('usuarios')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>person</span>
+                  <span style={styles.menuText}>Usuarios</span>
+                </div>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'genero' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('genero')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>apps</span>
+                  <span style={styles.menuText}>Género de usuario</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Transacciones */}
+          <div style={styles.menuSection}>
+            <div 
+              style={{
+                ...styles.menuDropdownHeader,
+                backgroundColor: hoveredItem === 'transacciones-header' ? '#f0f0f0' : '#f9f9f9'
+              }}
+              onClick={() => toggleDropdown('transacciones')}
+              onMouseEnter={() => setHoveredItem('transacciones-header')}
+              onMouseLeave={() => setHoveredItem(null)}
+            >
+              <span style={styles.dropdownTitle}>Transacciones</span>
+              <span 
+                className="material-symbols-outlined" 
+                style={{
+                  ...styles.dropdownIcon,
+                  transform: openDropdowns.transacciones ? 'rotate(180deg)' : 'rotate(0deg)'
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+            
+            {openDropdowns.transacciones && (
+              <div style={styles.dropdownContent}>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'transacciones' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('transacciones')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>attach_money</span>
+                  <span style={styles.menuText}>Transacciones</span>
+                </div>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'detalle' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('detalle')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>contract</span>
+                  <span style={styles.menuText}>Detalle de Transacción</span>
+                </div>
+                <div 
+                  style={{
+                    ...styles.menuSubItem,
+                    backgroundColor: hoveredItem === 'metodos-pago' ? '#f0f0f0' : 'transparent'
+                  }}
+                  onMouseEnter={() => setHoveredItem('metodos-pago')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="material-symbols-outlined" style={styles.menuIcon}>credit_card</span>
+                  <span style={styles.menuText}>Métodos de Pago</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Saludo al usuario en la parte inferior */}
+        <div style={styles.userGreeting}>
+          <span style={styles.greetingText}>
+            Hola, {user?.nombre || 'SuperAdmin'}
+          </span>
+          <div style={styles.adminBadge}>
+            ADMIN
+          </div>
+        </div>
+      </aside>
+      
+      {/* Contenido principal - ajustado sin header */}
+      <div style={styles.content}>
+        {selectedSection === 'categorias' && <CategoriasArchivoTable />}
+        {/* Aquí irá el contenido del dashboard */}
       </div>
     </div>
   );
@@ -35,71 +257,148 @@ const SuperAdminDashboard = ({ onLogout }) => {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#f8f9fa'
+    backgroundColor: '#fafafa',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    color: '#1d1d1f',
+    lineHeight: 1.4,
   },
-  header: {
-    padding: '15px 20px',
-    backgroundColor: '#6f42c1', // Púrpura para superadmin
-    color: 'white',
+
+  // Sidebar expandido para incluir logo y usuario
+  sidebar: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '280px',
+    height: '100vh',
+    backgroundColor: '#ffffff',
+    borderRight: '1px solid #e5e5e7',
     display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto',
+    zIndex: 999
+  },
+
+  // Logo alineado a la izquierda, más grande y SIN BORDE
+  sidebarLogoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start', // Alineado a la izquierda
+    padding: '20px 24px',
+    // borderBottom: '1px solid #e5e5e7', // ❌ ELIMINADO
+    backgroundColor: '#ffffff' // Cambiado para que no se distinga
+  },
+
+  logoImage: {
+    height: '42px', // Aumentado de 32px a 42px
+    width: 'auto',
+    objectFit: 'contain',
+  },
+
+  // Container del menú (parte media que crece)
+  menuContainer: {
+    flex: 1,
+    paddingTop: '16px'
+  },
+
+  // Saludo al usuario en la parte inferior
+  userGreeting: {
+    display: 'flex',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+    padding: '16px 24px',
+    borderTop: '1px solid #e5e5e7',
+    backgroundColor: '#fafafa',
+    marginTop: 'auto' // Empuja hacia abajo
   },
-  headerTitle: {
-    margin: 0,
-    fontSize: '24px',
-    fontWeight: 'bold'
+
+  greetingText: {
+    fontSize: '11px',
+    fontWeight: '500',
+    color: '#1d1d1f',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   },
-  logoutButton: {
-    padding: '8px 16px',
-    fontSize: '14px',
-    color: 'white',
-    backgroundColor: '#dc3545',
-    border: 'none',
+
+  adminBadge: {
+    backgroundColor: '#1d1d1f',
+    color: '#ffffff',
+    fontSize: '9px',
+    fontWeight: '500',
+    padding: '3px 6px',
     borderRadius: '4px',
-    cursor: 'pointer',
-    fontWeight: 'bold'
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    letterSpacing: '0.5px'
   },
+
+  // Content sin padding top (ya no hay header fijo)
   content: {
+    maxWidth: 'calc(1200px - 280px)',
+    margin: '0 auto 0 280px',
+    padding: '40px 24px'
+  },
+
+  menuItem: {
     display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 'calc(100vh - 70px)',
-    padding: '20px'
+    padding: '12px 24px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+    borderBottom: '1px solid #f5f5f7'
   },
-  card: {
-    backgroundColor: 'white',
-    padding: '60px 40px',
-    borderRadius: '12px',
-    boxShadow: '0 8px 30px rgba(0,0,0,0.1)',
-    textAlign: 'center',
-    maxWidth: '600px',
-    width: '100%'
+
+  menuSection: {
+    borderBottom: '1px solid #f5f5f7'
   },
-  mainText: {
-    fontSize: '48px',
-    fontWeight: 'bold',
-    color: '#6f42c1',
-    margin: '0 0 20px 0',
-    letterSpacing: '2px'
+
+  menuDropdownHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '16px 24px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+    backgroundColor: '#f9f9f9'
   },
-  subtitle: {
-    fontSize: '18px',
-    color: '#6f42c1',
-    margin: '0 0 15px 0',
-    fontWeight: 'bold'
+
+  menuSubItem: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '10px 24px 10px 48px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease'
   },
-  description: {
-    fontSize: '16px',
-    color: '#666',
-    lineHeight: '1.5',
-    marginBottom: '20px'
+
+  menuIcon: {
+    fontSize: '20px',
+    color: '#1d1d1f',
+    marginRight: '12px',
+    fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20"
   },
-  features: {
-    textAlign: 'left',
-    fontSize: '14px',
-    color: '#555'
+
+  menuText: {
+    fontSize: '10.5px',
+    fontWeight: '400',
+    color: '#1d1d1f',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  dropdownTitle: {
+    fontSize: '9.5px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  },
+
+  dropdownIcon: {
+    fontSize: '20px',
+    color: '#86868b',
+    transition: 'transform 0.2s ease',
+    fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20"
+  },
+
+  dropdownContent: {
+    backgroundColor: '#fafafa'
   }
 };
 

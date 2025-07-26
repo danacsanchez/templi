@@ -6,7 +6,6 @@ exports.getUsuarios = async (req, res) => {
   try {
     const { 
       tipo, 
-      activo, 
       search, 
       page = 1, 
       limit = 20 
@@ -17,14 +16,12 @@ exports.getUsuarios = async (req, res) => {
         u.id_usuario,
         u.nombre,
         u.email,
-        u.telefono,
         u.fecha_nacimiento,
         u.fecha_registro,
-        u.activo,
-        tu.tipo as rol,
+        tu.nombre as rol,
         gu.nombre as genero
       FROM usuarios u
-      JOIN tipo_usuarios tu ON u.id_tipo_usuarios = tu.id_tipo_usuarios
+      JOIN tipo_usuarios tu ON u.id_tipo_usuario = tu.id_tipo_usuario
       LEFT JOIN genero_usuario gu ON u.id_genero_usuario = gu.id_genero_usuario
       WHERE 1=1
     `;
@@ -34,14 +31,8 @@ exports.getUsuarios = async (req, res) => {
 
     // Filtros opcionales
     if (tipo) {
-      query += ` AND u.id_tipo_usuarios = $${paramCount}`;
+      query += ` AND u.id_tipo_usuario = $${paramCount}`;
       params.push(tipo);
-      paramCount++;
-    }
-
-    if (activo !== undefined) {
-      query += ` AND u.activo = $${paramCount}`;
-      params.push(activo === 'true');
       paramCount++;
     }
 
@@ -69,14 +60,8 @@ exports.getUsuarios = async (req, res) => {
     let countParamCount = 1;
 
     if (tipo) {
-      countQuery += ` AND u.id_tipo_usuarios = $${countParamCount}`;
+      countQuery += ` AND u.id_tipo_usuario = $${countParamCount}`;
       countParams.push(tipo);
-      countParamCount++;
-    }
-
-    if (activo !== undefined) {
-      countQuery += ` AND u.activo = $${countParamCount}`;
-      countParams.push(activo === 'true');
       countParamCount++;
     }
 
@@ -116,14 +101,12 @@ exports.getPerfil = async (req, res) => {
         u.id_usuario,
         u.nombre,
         u.email,
-        u.telefono,
         u.fecha_nacimiento,
         u.fecha_registro,
-        u.activo,
-        tu.tipo as rol,
+        tu.nombre as rol,
         gu.nombre as genero
       FROM usuarios u
-      JOIN tipo_usuarios tu ON u.id_tipo_usuarios = tu.id_tipo_usuarios
+      JOIN tipo_usuarios tu ON u.id_tipo_usuario = tu.id_tipo_usuario
       LEFT JOIN genero_usuario gu ON u.id_genero_usuario = gu.id_genero_usuario
       WHERE u.id_usuario = $1
     `, [userId]);
@@ -150,14 +133,12 @@ exports.getUsuarioById = async (req, res) => {
         u.id_usuario,
         u.nombre,
         u.email,
-        u.telefono,
         u.fecha_nacimiento,
         u.fecha_registro,
-        u.activo,
-        tu.tipo as rol,
+        tu.nombre as rol,
         gu.nombre as genero
       FROM usuarios u
-      JOIN tipo_usuarios tu ON u.id_tipo_usuarios = tu.id_tipo_usuarios
+      JOIN tipo_usuarios tu ON u.id_tipo_usuario = tu.id_tipo_usuario
       LEFT JOIN genero_usuario gu ON u.id_genero_usuario = gu.id_genero_usuario
       WHERE u.id_usuario = $1
     `, [id]);
@@ -180,7 +161,6 @@ exports.updatePerfil = async (req, res) => {
     const userId = req.user.id_usuario;
     const {
       nombre,
-      telefono,
       fecha_nacimiento,
       id_genero_usuario
     } = req.body;
@@ -198,12 +178,6 @@ exports.updatePerfil = async (req, res) => {
     if (nombre) {
       updateFields.push(`nombre = $${paramCount}`);
       values.push(nombre.trim());
-      paramCount++;
-    }
-
-    if (telefono) {
-      updateFields.push(`telefono = $${paramCount}`);
-      values.push(telefono.trim());
       paramCount++;
     }
 
@@ -239,7 +213,7 @@ exports.updatePerfil = async (req, res) => {
       UPDATE usuarios 
       SET ${updateFields.join(', ')}
       WHERE id_usuario = $${paramCount}
-      RETURNING id_usuario, nombre, email, telefono, fecha_nacimiento, activo
+      RETURNING id_usuario, nombre, email, fecha_nacimiento
     `, values);
 
     const updatedUser = result.rows[0];
@@ -261,10 +235,8 @@ exports.updateUsuario = async (req, res) => {
     const { id } = req.params;
     const {
       nombre,
-      telefono,
       fecha_nacimiento,
-      id_genero_usuario,
-      activo
+      id_genero_usuario
     } = req.body;
 
     // Verificar que existe el usuario
@@ -285,12 +257,6 @@ exports.updateUsuario = async (req, res) => {
     if (nombre) {
       updateFields.push(`nombre = $${paramCount}`);
       values.push(nombre.trim());
-      paramCount++;
-    }
-
-    if (telefono) {
-      updateFields.push(`telefono = $${paramCount}`);
-      values.push(telefono.trim());
       paramCount++;
     }
 
@@ -315,12 +281,6 @@ exports.updateUsuario = async (req, res) => {
       paramCount++;
     }
 
-    if (activo !== undefined) {
-      updateFields.push(`activo = $${paramCount}`);
-      values.push(activo);
-      paramCount++;
-    }
-
     if (updateFields.length === 0) {
       return res.status(400).json({ error: 'No hay campos para actualizar' });
     }
@@ -331,7 +291,7 @@ exports.updateUsuario = async (req, res) => {
       UPDATE usuarios 
       SET ${updateFields.join(', ')}
       WHERE id_usuario = $${paramCount}
-      RETURNING id_usuario, nombre, email, telefono, fecha_nacimiento, activo
+      RETURNING id_usuario, nombre, email, fecha_nacimiento
     `, values);
 
     const updatedUser = result.rows[0];
@@ -351,9 +311,9 @@ exports.updateUsuario = async (req, res) => {
 exports.cambiarRol = async (req, res) => {
   try {
     const { id } = req.params;
-    const { id_tipo_usuarios } = req.body;
+    const { id_tipo_usuario } = req.body;
 
-    if (!id_tipo_usuarios) {
+    if (!id_tipo_usuario) {
       return res.status(400).json({ error: 'Tipo de usuario requerido' });
     }
 
@@ -369,8 +329,8 @@ exports.cambiarRol = async (req, res) => {
 
     // Verificar que existe el tipo de usuario
     const tipoExists = await pool.query(
-      'SELECT * FROM tipo_usuarios WHERE id_tipo_usuarios = $1',
-      [id_tipo_usuarios]
+      'SELECT * FROM tipo_usuarios WHERE id_tipo_usuario = $1',
+      [id_tipo_usuario]
     );
 
     if (tipoExists.rows.length === 0) {
@@ -382,12 +342,12 @@ exports.cambiarRol = async (req, res) => {
     try {
       // Actualizar rol
       await pool.query(
-        'UPDATE usuarios SET id_tipo_usuarios = $1 WHERE id_usuario = $2',
-        [id_tipo_usuarios, id]
+        'UPDATE usuarios SET id_tipo_usuario = $1 WHERE id_usuario = $2',
+        [id_tipo_usuario, id]
       );
 
       // Crear registros en tablas relacionadas según el nuevo rol
-      const tipoUsuario = tipoExists.rows[0].tipo;
+      const tipoUsuario = tipoExists.rows[0].nombre;
 
       if (tipoUsuario === 'Vendedor') {
         // Verificar si ya existe en tabla vendedor
@@ -435,47 +395,6 @@ exports.cambiarRol = async (req, res) => {
   }
 };
 
-// Cambiar estado activo/inactivo
-exports.toggleEstado = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // Verificar que existe el usuario
-    const exists = await pool.query(
-      'SELECT * FROM usuarios WHERE id_usuario = $1',
-      [id]
-    );
-
-    if (exists.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    // Cambiar estado
-    const result = await pool.query(
-      'UPDATE usuarios SET activo = NOT activo WHERE id_usuario = $1 RETURNING *',
-      [id]
-    );
-
-    const updatedUser = result.rows[0];
-    const estado = updatedUser.activo ? 'activado' : 'desactivado';
-    
-    console.log(`Usuario ${estado}: ${updatedUser.email}`);
-    
-    res.json({
-      message: `Usuario ${estado} exitosamente`,
-      usuario: {
-        id_usuario: updatedUser.id_usuario,
-        nombre: updatedUser.nombre,
-        email: updatedUser.email,
-        activo: updatedUser.activo
-      }
-    });
-  } catch (error) {
-    console.error('Error al cambiar estado del usuario:', error);
-    res.status(500).json({ error: 'Error al cambiar estado del usuario' });
-  }
-};
-
 // Cambiar contraseña
 exports.cambiarPassword = async (req, res) => {
   try {
@@ -492,7 +411,7 @@ exports.cambiarPassword = async (req, res) => {
 
     // Obtener contraseña actual
     const user = await pool.query(
-      'SELECT password FROM usuarios WHERE id_usuario = $1',
+      'SELECT contraseña FROM usuarios WHERE id_usuario = $1',
       [userId]
     );
 
@@ -501,7 +420,7 @@ exports.cambiarPassword = async (req, res) => {
     }
 
     // Verificar contraseña actual
-    const passwordMatch = await bcrypt.compare(password_actual, user.rows[0].password);
+    const passwordMatch = await bcrypt.compare(password_actual, user.rows[0].contraseña);
     if (!passwordMatch) {
       return res.status(400).json({ error: 'Contraseña actual incorrecta' });
     }
@@ -512,7 +431,7 @@ exports.cambiarPassword = async (req, res) => {
 
     // Actualizar contraseña
     await pool.query(
-      'UPDATE usuarios SET password = $1 WHERE id_usuario = $2',
+      'UPDATE usuarios SET contraseña = $1 WHERE id_usuario = $2',
       [hashedPassword, userId]
     );
 
@@ -527,7 +446,7 @@ exports.cambiarPassword = async (req, res) => {
   }
 };
 
-// Eliminar usuario (SuperAdmin)
+// Eliminar usuario
 exports.deleteUsuario = async (req, res) => {
   try {
     const { id } = req.params;
@@ -559,25 +478,12 @@ exports.deleteUsuario = async (req, res) => {
     `, [id]);
 
     if (parseInt(hasTransactions.rows[0].count) > 0) {
-      // Si tiene transacciones, solo desactivar
-      await pool.query(
-        'UPDATE usuarios SET activo = false WHERE id_usuario = $1',
-        [id]
-      );
-
-      console.log(`Usuario desactivado (tiene transacciones): ${usuario.email}`);
-      
-      return res.json({
-        message: 'Usuario desactivado (tiene transacciones asociadas)',
-        usuario: {
-          id_usuario: usuario.id_usuario,
-          email: usuario.email,
-          activo: false
-        }
+      return res.status(400).json({ 
+        error: 'No se puede eliminar. Este usuario tiene transacciones asociadas' 
       });
     }
 
-    // Si no tiene transacciones, eliminar completamente
+    // Eliminar usuario
     const deleted = await pool.query(
       'DELETE FROM usuarios WHERE id_usuario = $1 RETURNING id_usuario, nombre, email',
       [id]

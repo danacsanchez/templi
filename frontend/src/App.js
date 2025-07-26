@@ -5,7 +5,7 @@ import Register from './components/Register'; // ← AGREGAR ESTA LÍNEA
 import VendedorDashboard from './components/VendedorDashboard';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import ArchivoManager from './components/ArchivoManager';
-import UserProfile from './components/UserProfile'; // ← AGREGAR UserProfile
+import UserProfile from './components/UserProfile'; 
 import { authService } from './services/authService';
 import './App.css';
 
@@ -22,15 +22,20 @@ const App = () => {
   };
 
   const handleLoginSuccess = (userData) => {
+    console.log('Datos de usuario recibidos:', userData.user); // Para debug
     setUser(userData.user);
     
-    const userType = userData.user.tipo_usuario || userData.user.tipo_usuario_id;
+    const userType = userData.user.id_tipo_usuario;
+    console.log('Tipo de usuario:', userType); // Para debug
     
     if (userType === 3) {
+      console.log('Redirigiendo a SuperAdmin Dashboard');
       setCurrentPage('superadmin-dashboard');
     } else if (userType === 2) {
+      console.log('Redirigiendo a Vendedor Dashboard');
       setCurrentPage('vendedor-dashboard');
     } else {
+      console.log('Redirigiendo a Cliente Dashboard (Landing)');
       setCurrentPage('cliente-dashboard');
     }
   };
@@ -72,7 +77,7 @@ const App = () => {
         return <VendedorDashboard onLogout={handleLogout} />;
       
       case 'superadmin-dashboard':
-        return <SuperAdminDashboard onLogout={handleLogout} />;
+        return <SuperAdminDashboard onLogout={handleLogout} user={user} />;
       
       case 'cliente-dashboard':
         // Para clientes, mostrar landing con datos del usuario

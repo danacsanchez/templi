@@ -1,12 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { getCategoriasArchivo } from '../services/categoriaArchivoService';
+import { getCategoriasArchivo, addCategoriaArchivo, updateCategoriaArchivo, deleteCategoriaArchivo } from '../services/categoriaArchivoService';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
+import CategoriaForm from './CategoriaForm';
 
 const CategoriasArchivoTable = () => {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openMenu, setOpenMenu] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [formCategoria, setFormCategoria] = useState(null); // null = añadir, objeto = editar
   const menuRef = useRef(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [categoriaToDelete, setCategoriaToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,6 +24,13 @@ const CategoriasArchivoTable = () => {
   
   // Estado para ordenamiento
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' o 'desc'
+
+  // Estado para notificaciones
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success' // success, error, etc
+  });
 
   /* ───────────── hooks ───────────── */
   useEffect(() => {
@@ -33,6 +47,45 @@ const CategoriasArchivoTable = () => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [openMenu]);
+
+  // Función para mostrar notificación
+  const showNotification = (message, type = 'success') => {
+    setNotification({
+      show: true,
+      message,
+      type
+    });
+    
+    // Auto-ocultar después de 3 segundos
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
+
+  // Función mejorada para manejar guardar/editar
+  const handleSaveCategoria = async (categoriaData) => {
+    try {
+      if (formCategoria) {
+        // Actualizar categoría existente
+        await updateCategoriaArchivo(formCategoria.id_categoria_archivo, categoriaData);
+        showNotification('Categoría modificada con éxito');
+      } else {
+        // Crear nueva categoría
+        await addCategoriaArchivo(categoriaData);
+        showNotification('Categoría añadida con éxito');
+      }
+      
+      // Recargar datos y cerrar modal
+      const updatedData = await getCategoriasArchivo();
+      setCategorias(updatedData);
+      setShowForm(false);
+      setFormCategoria(null);
+      
+    } catch (error) {
+      console.error('Error al guardar categoría:', error);
+      showNotification('Error al guardar la categoría', 'error');
+    }
+  };
 
   // Función para alternar el ordenamiento
   const toggleSort = () => {
@@ -91,6 +144,19 @@ const CategoriasArchivoTable = () => {
   /* ───────────── UI ───────────── */
   return (
     <div style={containerStyle}>
+      {/* NOTIFICACIÓN EN LA ESQUINA */}
+      {notification.show && (
+        <div style={{
+          ...notificationStyle,
+          ...(notification.type === 'error' ? errorNotificationStyle : {})
+        }}>
+          <span className="material-symbols-outlined" style={notificationIconStyle}>
+            {notification.type === 'error' ? 'error' : 'check'}
+          </span>
+          {notification.message}
+        </div>
+      )}
+
       <div style={headerStyle}>
         <div style={titleStyle}>Categorias</div>
         <div style={subtitleStyle}>
@@ -115,7 +181,14 @@ const CategoriasArchivoTable = () => {
         </div>
 
         {/* Botón añadir - al lado de la búsqueda */}
-        <button style={addButtonStyle}>
+        <button
+          style={addButtonStyle}
+          onClick={() => {
+            setFormCategoria(null);
+            setShowForm(true);
+            setOpenMenu(null);
+          }}
+        >
           <span className="material-symbols-outlined" style={addIconStyle}>add</span>
           Añadir categoría
         </button>
@@ -161,6 +234,7 @@ const CategoriasArchivoTable = () => {
                         ...tdStyle,
                         textAlign:'center',
                         position:'relative',
+                        overflow: 'visible',
                         ...(i===currentCategorias.length-1?tdLastRowStyle:{})
                       }}>
                     <button
@@ -171,12 +245,30 @@ const CategoriasArchivoTable = () => {
                     </button>
 
                     {openMenu===cat.id_categoria_archivo && (
-                      <div style={menuStyle} ref={menuRef}>
-                        <div style={menuItemStyle}>
+                      <div style={{
+                        ...menuStyle,
+                        // ✅ CLAVE: Si es el último elemento, el menú se abre hacia arriba
+                        ...(i === currentCategorias.length - 1 ? menuLastRowStyle : {})
+                      }} ref={menuRef}>
+                        <div
+                          style={menuItemStyle}
+                          onClick={() => {
+                            setFormCategoria(cat);
+                            setShowForm(true);
+                            setOpenMenu(null);
+                          }}
+                        >
                           <span className="material-symbols-outlined" style={menuIconStyle}>edit</span>
                           Editar
                         </div>
-                        <div style={menuItemStyle}>
+                        <div
+                          style={menuItemStyle}
+                          onClick={() => {
+                            setCategoriaToDelete(cat);
+                            setShowDeleteModal(true);
+                            setOpenMenu(null);
+                          }}
+                        >
                           <span className="material-symbols-outlined" style={menuIconStyle}>delete</span>
                           Eliminar
                         </div>
@@ -187,8 +279,13 @@ const CategoriasArchivoTable = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="3" style={{...tdStyle, textAlign: 'center', color: '#86868b', fontStyle: 'italic'}}>
-                  No se encontraron categorías
+                <td colSpan="3" style={emptyStateStyle}>
+                  <div style={emptyStateContentStyle}>
+                    <span className="material-symbols-outlined" style={emptyStateIconStyle}>
+                      sentiment_sad
+                    </span>
+                    Ups… no se encontró ninguna categoría.
+                  </div>
                 </td>
               </tr>
             )}
@@ -243,6 +340,47 @@ const CategoriasArchivoTable = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL FORMULARIO */}
+      <CategoriaForm
+        isOpen={showForm}
+        categoria={formCategoria}
+        onCancel={() => {
+          setShowForm(false);
+          setFormCategoria(null);
+        }}
+        onSave={handleSaveCategoria}
+      />
+
+      {/* MODAL ELIMINAR */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        itemName={categoriaToDelete?.nombre || ''}
+        isLoading={isDeleting}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setCategoriaToDelete(null);
+        }}
+        onConfirm={async () => {
+          if (!categoriaToDelete) return;
+          setIsDeleting(true);
+          try {
+            await deleteCategoriaArchivo(categoriaToDelete.id_categoria_archivo);
+            showNotification('Categoría eliminada con éxito', 'success');
+            // Refrescar lista
+            const updated = await getCategoriasArchivo();
+            setCategorias(updated);
+          } catch (err) {
+            showNotification('Error al eliminar la categoría', 'error');
+          } finally {
+            setIsDeleting(false);
+            setShowDeleteModal(false);
+            setCategoriaToDelete(null);
+          }
+        }}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+      />
     </div>
   );
 };
@@ -313,8 +451,14 @@ const addIconStyle = {
 };
 
 const tableWrapperStyle = {
-  overflowX:'auto',background:'#fff',width:'calc(100vw - 56px - 320px)',
-  marginRight:30,minWidth:320,maxWidth:1400,border:'none'
+  overflowX: 'auto',
+  overflowY: 'visible',
+  background: '#fff',
+  width: 'calc(100vw - 56px - 320px)',
+  marginRight: 30,
+  minWidth: 320,
+  maxWidth: 1400,
+  border: 'none'
 };
 
 const tableStyle = {width:'100%',borderCollapse:'collapse',background:'#fff',fontSize:11};
@@ -351,12 +495,52 @@ const tdStyle = {
 
 const tdLastRowStyle = {borderBottom:'none'};
 
+// Estilos para el estado vacío
+const emptyStateStyle = {
+  ...tdStyle,
+  textAlign: 'center',
+  borderBottom: 'none',
+  padding: '40px 14px'
+};
+
+const emptyStateContentStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '8px',
+  color: '#86868b',
+  fontSize: '11px',
+  fontStyle: 'normal'
+};
+
+const emptyStateIconStyle = {
+  fontSize: '24px',
+  color: '#86868b'
+};
+
 const iconButtonStyle = {background:'none',border:'none',cursor:'pointer',color:'#86868b',padding:0,fontSize:13,lineHeight:1};
 
+// ✅ Menú normal (se abre hacia abajo)
 const menuStyle = {
-  position:'absolute',top:28,left:'50%',transform:'translateX(-50%)',
-  minWidth:120,background:'#fff',border:'1px solid #e5e5e7',borderRadius:8,
-  boxShadow:'0 2px 8px #0001',zIndex:10,padding:'6px 0'
+  position: 'absolute',
+  top: '100%',
+  right: '0',
+  minWidth: 120,
+  background: '#fff',
+  border: '1px solid #e5e5e7',
+  borderRadius: 8,
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  zIndex: 1000,
+  padding: '6px 0',
+  marginTop: '4px'
+};
+
+// ✅ NUEVO: Menú para la última fila (se abre hacia arriba)
+const menuLastRowStyle = {
+  top: 'auto',
+  bottom: '100%', // Se posiciona arriba del botón
+  marginTop: '0',
+  marginBottom: '4px' // Margen hacia arriba
 };
 
 const menuItemStyle = {display:'flex',alignItems:'center',gap:6,padding:'7px 16px',fontSize:11,color:'#1d1d1f',cursor:'pointer'};
@@ -416,6 +600,35 @@ const pageNumberStyle = {
 const activePageStyle = {
   background: '#f5f5f7',
   color: '#1d1d1f'
+};
+
+// Estilos para notificaciones
+const notificationStyle = {
+  position: 'fixed',
+  top: '20px',
+  right: '20px',
+  background: '#34c759',
+  color: '#fff',
+  padding: '12px 16px',
+  borderRadius: '8px',
+  boxShadow: '0 4px 12px rgba(52, 199, 89, 0.3)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontSize: '11px',
+  fontWeight: '500',
+  zIndex: 1001,
+  animation: 'slideInFromRight 0.3s ease-out',
+  fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+};
+
+const errorNotificationStyle = {
+  background: '#ff3b30',
+  boxShadow: '0 4px 12px rgba(255, 59, 48, 0.3)'
+};
+
+const notificationIconStyle = {
+  fontSize: '16px'
 };
 
 export default CategoriasArchivoTable;

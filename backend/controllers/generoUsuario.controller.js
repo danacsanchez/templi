@@ -7,14 +7,13 @@ exports.getGeneros = async (req, res) => {
       'SELECT * FROM genero_usuario ORDER BY id_genero_usuario'
     );
     
-    // Mapear para el frontend
+    // Mapear para el frontend con el campo correcto
     const generos = result.rows.map(genero => ({
-      id: genero.id_genero_usuario, // ← Mapear a 'id'
+      id_genero_usuario: genero.id_genero_usuario,
       nombre: genero.nombre
     }));
-    
     console.log(`Géneros obtenidos: ${generos.length}`);
-    res.json(generos); // ← Enviar los géneros mapeados
+    res.json(generos);
   } catch (error) {
     console.error('Error al obtener géneros:', error);
     res.status(500).json({ error: 'Error al obtener géneros' });

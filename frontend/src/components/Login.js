@@ -33,7 +33,7 @@ const Login = ({ onLoginSuccess, onBackToHome, onRegisterClick }) => { // ← Ag
       const userName = response.data.user.nombre;
       const userRole = response.data.user.tipo || response.data.user.rol;
       
-      alert(`¡Bienvenido ${userName}! (Rol: ${userRole})`);
+      // alert(`¡Bienvenido ${userName}! (Rol: ${userRole})`);
       
       console.log('Usuario logueado:', response.data.user);
       

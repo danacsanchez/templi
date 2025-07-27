@@ -451,50 +451,85 @@ exports.deleteUsuario = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Verificar que existe
-    const exists = await pool.query(
-      'SELECT * FROM usuarios WHERE id_usuario = $1',
-      [id]
-    );
+    // Iniciar transacción
+    await pool.query('BEGIN');
+    try {
+      // Verificar que existe
+      const exists = await pool.query(
+        'SELECT * FROM usuarios WHERE id_usuario = $1',
+        [id]
+      );
+      if (exists.rows.length === 0) {
+        await pool.query('ROLLBACK');
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+      const usuario = exists.rows[0];
 
-    if (exists.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
+      // Verificar si tiene transacciones o archivos
+      const hasTransactions = await pool.query(`
+        SELECT COUNT(*) as count FROM (
+          SELECT t.id_transacciones FROM transacciones t
+          JOIN cliente c ON t.id_cliente = c.id_cliente
+          WHERE c.id_usuario = $1
+          UNION
+          SELECT dt.id_transacciones FROM detalle_transaccion dt
+          JOIN archivos a ON dt.id_archivo = a.id_archivo
+          JOIN vendedor v ON a.id_vendedor = v.id_vendedor
+          WHERE v.id_usuario = $1
+        ) combined
+      `, [id]);
+      if (parseInt(hasTransactions.rows[0].count) > 0) {
+        await pool.query('ROLLBACK');
+        return res.status(400).json({ 
+          error: 'No se puede eliminar. Este usuario tiene transacciones asociadas' 
+        });
+      }
 
-    const usuario = exists.rows[0];
+      // Eliminar imágenes y archivos de todos los vendedores asociados al usuario
+      const vendedorResult = await pool.query('SELECT id_vendedor FROM vendedor WHERE id_usuario = $1', [id]);
+      if (vendedorResult.rows.length > 0) {
+        for (const row of vendedorResult.rows) {
+          const idVendedor = row.id_vendedor;
+          // Buscar archivos de este vendedor
+          const archivosResult = await pool.query('SELECT id_archivo FROM archivos WHERE id_vendedor = $1', [idVendedor]);
+          if (archivosResult.rows.length > 0) {
+            for (const archivo of archivosResult.rows) {
+              const idArchivo = archivo.id_archivo;
+              // Eliminar imágenes asociadas a este archivo
+              await pool.query('DELETE FROM imagenes_archivo WHERE id_archivo = $1', [idArchivo]);
+            }
+          }
+          // Eliminar archivos del vendedor
+          await pool.query('DELETE FROM archivos WHERE id_vendedor = $1', [idVendedor]);
+        }
+      }
 
-    // Verificar si tiene transacciones o archivos
-    const hasTransactions = await pool.query(`
-      SELECT COUNT(*) as count FROM (
-        SELECT t.id_transacciones FROM transacciones t
-        JOIN cliente c ON t.id_cliente = c.id_cliente
-        WHERE c.id_usuario = $1
-        UNION
-        SELECT dt.id_transacciones FROM detalle_transaccion dt
-        JOIN archivos a ON dt.id_archivo = a.id_archivo
-        JOIN vendedor v ON a.id_vendedor = v.id_vendedor
-        WHERE v.id_usuario = $1
-      ) combined
-    `, [id]);
 
-    if (parseInt(hasTransactions.rows[0].count) > 0) {
-      return res.status(400).json({ 
-        error: 'No se puede eliminar. Este usuario tiene transacciones asociadas' 
+      // Eliminar todos los registros de cliente asociados al usuario primero
+      await pool.query('DELETE FROM cliente WHERE id_usuario = $1', [id]);
+      console.log('Clientes eliminados para usuario', id);
+      // Luego eliminar todos los registros de vendedor asociados al usuario
+      await pool.query('DELETE FROM vendedor WHERE id_usuario = $1', [id]);
+      console.log('Vendedores eliminados para usuario', id);
+
+      // Eliminar usuario
+      const deleted = await pool.query(
+        'DELETE FROM usuarios WHERE id_usuario = $1 RETURNING id_usuario, nombre, email',
+        [id]
+      );
+
+      await pool.query('COMMIT');
+
+      console.log(`Usuario eliminado: ${deleted.rows[0].email}`);
+      res.json({
+        message: 'Usuario eliminado exitosamente',
+        usuario: deleted.rows[0]
       });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      console.error('Error al eliminar usuario (rollback):', error);
+      res.status(500).json({ error: 'Error al eliminar usuario' });
     }
-
-    // Eliminar usuario
-    const deleted = await pool.query(
-      'DELETE FROM usuarios WHERE id_usuario = $1 RETURNING id_usuario, nombre, email',
-      [id]
-    );
-
-    console.log(`Usuario eliminado: ${deleted.rows[0].email}`);
-    
-    res.json({
-      message: 'Usuario eliminado exitosamente',
-      usuario: deleted.rows[0]
-    });
   } catch (error) {
     console.error('Error al eliminar usuario:', error);
     res.status(500).json({ error: 'Error al eliminar usuario' });

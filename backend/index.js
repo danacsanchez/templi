@@ -41,7 +41,11 @@ app.use('/api/transacciones', transaccionesRoutes);
 const detalleTransaccionesRoutes = require('./routes/detalleTransacciones.routes');
 app.use('/api/detalle-transacciones', detalleTransaccionesRoutes);
 
-// AGREGAR ESTA LÍNEA
+// Rutas de tipos de usuario (catálogo)
+const tipoUsuariosRoutes = require('./routes/tipoUsuarios.routes');
+app.use('/api/tipo-usuarios', tipoUsuariosRoutes);
+
+// Rutas de usuarios
 const usuariosRoutes = require('./routes/usuarios.routes');
 app.use('/api/usuarios', usuariosRoutes);
 
@@ -77,6 +81,9 @@ app.listen(PORT, () => {
   console.log('   POST   /api/generos');
   console.log('   PUT    /api/generos/:id');
   console.log('   DELETE /api/generos/:id');
+  console.log('* Rutas de tipos de usuario disponibles:'); // 🆕 NUEVO
+  console.log('   GET    /api/tipo-usuarios');               // 🆕 NUEVO
+  console.log('   GET    /api/tipo-usuarios/:id');           // 🆕 NUEVO
   console.log('* Rutas de archivos disponibles:');
   console.log('   GET    /api/archivos');
   console.log('   GET    /api/archivos/:id');

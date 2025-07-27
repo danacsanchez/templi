@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import CategoriasArchivoTable from './CategoriasArchivoTable';
+import ExtensionesArchivoTable from './ExtensionesArchivoTable';
+import GeneroUsuarioTable from './GeneroUsuarioTable';
+import MetodosPagoTable from './MetodosPagoTable';
+import UsuariosTable from './UsuariosTable';
 
 const SuperAdminDashboard = ({ onLogout, user }) => {
   const [openDropdowns, setOpenDropdowns] = useState({
@@ -108,10 +112,12 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
                 <div 
                   style={{
                     ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'extensiones' ? '#f0f0f0' : 'transparent'
+                    backgroundColor: hoveredItem === 'extensiones' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'extensiones' ? 600 : 400
                   }}
                   onMouseEnter={() => setHoveredItem('extensiones')}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('extensiones')}
                 >
                   <span className="material-symbols-outlined" style={styles.menuIcon}>type_specimen</span>
                   <span style={styles.menuText}>Extensiones</span>
@@ -148,10 +154,12 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
                 <div 
                   style={{
                     ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'usuarios' ? '#f0f0f0' : 'transparent'
+                    backgroundColor: hoveredItem === 'usuarios' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'usuarios' ? 600 : 400
                   }}
                   onMouseEnter={() => setHoveredItem('usuarios')}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('usuarios')} // 🆕 AGREGAR ONCLICK
                 >
                   <span className="material-symbols-outlined" style={styles.menuIcon}>person</span>
                   <span style={styles.menuText}>Usuarios</span>
@@ -159,10 +167,12 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
                 <div 
                   style={{
                     ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'genero' ? '#f0f0f0' : 'transparent'
+                    backgroundColor: hoveredItem === 'genero' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'genero' ? 600 : 400
                   }}
                   onMouseEnter={() => setHoveredItem('genero')}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('genero')}
                 >
                   <span className="material-symbols-outlined" style={styles.menuIcon}>apps</span>
                   <span style={styles.menuText}>Género de usuario</span>
@@ -221,10 +231,12 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
                 <div 
                   style={{
                     ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'metodos-pago' ? '#f0f0f0' : 'transparent'
+                    backgroundColor: hoveredItem === 'metodos-pago' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'metodos-pago' ? 600 : 400
                   }}
                   onMouseEnter={() => setHoveredItem('metodos-pago')}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('metodos-pago')}
                 >
                   <span className="material-symbols-outlined" style={styles.menuIcon}>credit_card</span>
                   <span style={styles.menuText}>Métodos de Pago</span>
@@ -248,6 +260,10 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
       {/* Contenido principal - ajustado sin header */}
       <div style={styles.content}>
         {selectedSection === 'categorias' && <CategoriasArchivoTable />}
+        {selectedSection === 'extensiones' && <ExtensionesArchivoTable />}
+        {selectedSection === 'genero' && <GeneroUsuarioTable />}
+        {selectedSection === 'metodos-pago' && <MetodosPagoTable />}
+        {selectedSection === 'usuarios' && <UsuariosTable />} {/* 🆕 AGREGAR USUARIOS TABLE */}
         {/* Aquí irá el contenido del dashboard */}
       </div>
     </div>

@@ -1,6 +1,7 @@
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { sendMail } = require('../utils/mailer');
 
 // Obtener tipos de usuario (para el formulario)
 exports.getTiposUsuario = async (req, res) => {
@@ -98,6 +99,15 @@ exports.register = async (req, res) => {
 
       const user = userWithType.rows[0];
       delete user.contraseña;
+
+
+      // Enviar correo de bienvenida
+      try {
+        await sendMail(user.email);
+        console.log('Correo de bienvenida enviado a', user.email);
+      } catch (mailError) {
+        console.error('Error al enviar correo de bienvenida:', mailError);
+      }
 
       console.log('Usuario registrado exitosamente:', user.nombre);
       res.status(201).json({ 

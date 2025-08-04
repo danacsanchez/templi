@@ -26,23 +26,28 @@ const Register = ({ onBackToLogin, onRegisterSuccess, onBackToHome }) => {
       const response = await fetch('http://localhost:3000/api/generos'); // ← Cambiar a 3000
       if (response.ok) {
         const data = await response.json();
-        setGeneros(data);
+        // Asegurarse de que los géneros tengan la propiedad id_genero_usuario
+        const generosMapped = data.map(g => ({
+          id_genero_usuario: g.id_genero_usuario || g.id || g.value || '',
+          nombre: g.nombre
+        }));
+        setGeneros(generosMapped);
       } else {
         console.error('Error al cargar géneros');
         // Fallback si la API falla
         setGeneros([
-          { id: 1, nombre: 'Femenino' },
-          { id: 2, nombre: 'Masculino' },
-          { id: 3, nombre: 'Prefiero no decirlo' }
+          { id_genero_usuario: 1, nombre: 'Femenino' },
+          { id_genero_usuario: 2, nombre: 'Masculino' },
+          { id_genero_usuario: 3, nombre: 'Prefiero no decirlo' }
         ]);
       }
     } catch (error) {
       console.error('Error al conectar con la API de géneros:', error);
       // Fallback si hay error de conexión
       setGeneros([
-        { id: 1, nombre: 'Femenino' },
-        { id: 2, nombre: 'Masculino' },
-        { id: 3, nombre: 'Prefiero no decirlo' }
+        { id_genero_usuario: 1, nombre: 'Femenino' },
+        { id_genero_usuario: 2, nombre: 'Masculino' },
+        { id_genero_usuario: 3, nombre: 'Prefiero no decirlo' }
       ]);
     }
   };
@@ -271,15 +276,15 @@ const Register = ({ onBackToLogin, onRegisterSuccess, onBackToHome }) => {
               {/* Campo Género - DINÁMICO */}
               <div style={styles.inputGroup}>
                 <select
-                  name="id_genero_usuario" // ← Cambiado
-                  value={formData.id_genero_usuario} // ← Cambiado
+                  name="id_genero_usuario"
+                  value={formData.id_genero_usuario}
                   onChange={handleInputChange}
                   required
                   style={styles.select}
                 >
                   <option value="">Selecciona tu género</option>
                   {generos.map(genero => (
-                    <option key={genero.id} value={genero.id}>
+                    <option key={genero.id_genero_usuario} value={genero.id_genero_usuario}>
                       {genero.nombre}
                     </option>
                   ))}

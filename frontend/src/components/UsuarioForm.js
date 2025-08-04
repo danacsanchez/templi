@@ -80,6 +80,10 @@ const UsuarioForm = ({ usuario, tiposUsuario, onSave, onCancel }) => {
       newErrors.id_tipo_usuario = 'El tipo de usuario es requerido';
     }
 
+    if (!formData.id_genero_usuario) {
+      newErrors.id_genero_usuario = 'El género es requerido';
+    }
+
     if (!usuario && !formData.contraseña.trim()) {
       newErrors.contraseña = 'La contraseña es requerida';
     } else if (!usuario && formData.contraseña.length < 6) {
@@ -238,14 +242,17 @@ const UsuarioForm = ({ usuario, tiposUsuario, onSave, onCancel }) => {
             {/* Género - campo pequeño compacto */}
             <div style={smallFieldContainerStyle}>
               <label style={labelStyle} htmlFor="id_genero_usuario">
-                Género
+                Género <span style={requiredStyle}>*</span>
               </label>
               <select
                 id="id_genero_usuario"
                 name="id_genero_usuario"
                 value={formData.id_genero_usuario}
                 onChange={handleInputChange}
-                style={smallSelectStyle}
+                style={{
+                  ...smallSelectStyle,
+                  ...(errors.id_genero_usuario ? errorInputStyle : {})
+                }}
                 disabled={isSubmitting}
               >
                 <option value="">Seleccionar</option>
@@ -255,6 +262,9 @@ const UsuarioForm = ({ usuario, tiposUsuario, onSave, onCancel }) => {
                   </option>
                 ))}
               </select>
+              {errors.id_genero_usuario && (
+                <span style={errorTextStyle}>{errors.id_genero_usuario}</span>
+              )}
             </div>
 
             {/* Tipo de usuario - campo pequeño compacto */}

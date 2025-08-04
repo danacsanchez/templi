@@ -74,7 +74,7 @@ const App = () => {
         );
       
       case 'vendedor-dashboard':
-        return <VendedorDashboard onLogout={handleLogout} />;
+        return <VendedorDashboard onLogout={handleLogout} user={user} />;
       
       case 'superadmin-dashboard':
         return <SuperAdminDashboard onLogout={handleLogout} user={user} />;

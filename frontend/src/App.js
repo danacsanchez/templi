@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
-import Register from './components/Register'; // ← AGREGAR ESTA LÍNEA
+import Register from './components/Register';
 import VendedorDashboard from './components/VendedorDashboard';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
-import ArchivoManager from './components/ArchivoManager';
 import UserProfile from './components/UserProfile'; 
+import Marketplace from './components/Marketplace';
 import { authService } from './services/authService';
 import './App.css';
 
@@ -44,6 +44,18 @@ const App = () => {
     setCurrentPage('user-profile');
   };
 
+  const handleMarketplaceClick = () => {
+    setCurrentPage('marketplace');
+  };
+
+  const handleBackToHome = () => {
+    if (user) {
+      setCurrentPage('cliente-dashboard');
+    } else {
+      setCurrentPage('landing');
+    }
+  };
+
   const handleLogout = () => {
     authService.removeToken();
     setUser(null);
@@ -53,7 +65,12 @@ const App = () => {
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'landing':
-        return <LandingPage onLoginClick={handleLoginClick} />; // ← Sin user aún
+        return (
+          <LandingPage 
+            onLoginClick={handleLoginClick} 
+            onMarketplaceClick={handleMarketplaceClick}
+          />
+        );
       
       case 'login':
         return (
@@ -87,6 +104,17 @@ const App = () => {
             user={user} // ← Pasar datos del usuario
             onLogout={handleLogout} // ← Pasar función de logout
             onProfileClick={handleProfileClick} // ← Pasar función para ir al perfil
+            onMarketplaceClick={handleMarketplaceClick} // ← Pasar función para ir al marketplace
+          />
+        );
+      
+      case 'marketplace':
+        return (
+          <Marketplace
+            user={user}
+            onBackToHome={handleBackToHome}
+            onProfileClick={handleProfileClick}
+            onLoginClick={handleLoginClick}
           />
         );
       
@@ -95,7 +123,7 @@ const App = () => {
           <UserProfile 
             user={user}
             onLogout={handleLogout}
-            onBackToHome={() => setCurrentPage('cliente-dashboard')}
+            onBackToHome={handleBackToHome}
           />
         );
       

@@ -1,4 +1,31 @@
 const pool = require('../db');
+const multer = require('multer');
+const path = require('path');
+
+// Configurar multer para manejar uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/') // Asegúrate de que esta carpeta exista
+  },
+  filename: function (req, file, cb) {
+    // Generar nombre único para el archivo
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB límite
+  }
+});
+
+// Middleware para subir archivos
+exports.uploadMiddleware = upload.fields([
+  { name: 'archivo_producto', maxCount: 1 },
+  { name: 'imagenes', maxCount: 10 }
+]);
 
 // Obtener todos los archivos (públicos y activos)
 exports.getArchivos = async (req, res) => {
@@ -11,7 +38,12 @@ exports.getArchivos = async (req, res) => {
         v.id_usuario as vendedor_usuario_id,
         u.nombre as vendedor_nombre,
         ca.nombre as categoria_nombre,
-        ea.nombre as extension_nombre
+        ea.nombre as extension_nombre,
+        (SELECT url_imagen 
+         FROM imagenes_archivo ia 
+         WHERE ia.id_archivo = a.id_archivo 
+           AND ia.es_portada = true 
+         LIMIT 1) as imagen_portada
       FROM archivos a
       JOIN vendedor v ON a.id_vendedor = v.id_vendedor
       JOIN usuarios u ON v.id_usuario = u.id_usuario
@@ -143,6 +175,10 @@ exports.getMisArchivos = async (req, res) => {
 // Crear nuevo archivo
 exports.createArchivo = async (req, res) => {
   try {
+    console.log('=== DEBUGGING BACKEND ===');
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
+    
     const {
       id_vendedor,
       id_extension_archivo,
@@ -153,14 +189,33 @@ exports.createArchivo = async (req, res) => {
       precio
     } = req.body;
 
+    console.log('Datos extraídos:', {
+      id_vendedor,
+      id_extension_archivo,
+      id_categoria_archivo,
+      nombre_archivo,
+      descripcion,
+      ruta_archivo,
+      precio
+    });
+
     // Validaciones básicas
     if (!id_vendedor || !id_extension_archivo || !id_categoria_archivo || 
-        !nombre_archivo || !descripcion || !ruta_archivo || !precio) {
-      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+        !nombre_archivo || !descripcion || !precio) {
+      console.log('Faltan campos obligatorios');
+      return res.status(400).json({ 
+        error: 'Campos obligatorios: id_vendedor, id_extension_archivo, id_categoria_archivo, nombre_archivo, descripcion, precio'
+      });
     }
 
-    if (precio < 0) {
+    if (parseFloat(precio) < 0) {
       return res.status(400).json({ error: 'El precio debe ser mayor o igual a 0' });
+    }
+
+    // Obtener nombre del archivo subido si existe
+    let rutaArchivoFinal = ruta_archivo || 'archivo_temporal.pdf';
+    if (req.files && req.files.archivo_producto && req.files.archivo_producto[0]) {
+      rutaArchivoFinal = req.files.archivo_producto[0].filename;
     }
 
     // Verificar que existe el vendedor
@@ -214,12 +269,43 @@ exports.createArchivo = async (req, res) => {
       id_categoria_archivo,
       nombre_archivo.trim(),
       descripcion.trim(),
-      ruta_archivo.trim(),
-      precio
+      rutaArchivoFinal,
+      parseFloat(precio)
     ]);
 
     const newArchivo = result.rows[0];
-    console.log(`Archivo creado: ${newArchivo.nombre_archivo}`);
+    console.log(`Archivo creado: ${newArchivo.nombre_archivo}, ID: ${newArchivo.id_archivo}`);
+    
+    // Procesar imágenes si existen
+    if (req.body.imagenes_metadata) {
+      try {
+        const imagenesMetadata = JSON.parse(req.body.imagenes_metadata);
+        console.log('Metadata de imágenes:', imagenesMetadata);
+        
+        if (req.files && req.files.imagenes) {
+          for (let i = 0; i < req.files.imagenes.length && i < imagenesMetadata.length; i++) {
+            const imagen = req.files.imagenes[i];
+            const metadata = imagenesMetadata[i];
+            
+            await pool.query(`
+              INSERT INTO imagenes_archivo (
+                id_archivo, 
+                url_imagen, 
+                orden, 
+                es_portada
+              ) VALUES ($1, $2, $3, $4)
+            `, [
+              newArchivo.id_archivo,
+              imagen.filename,
+              metadata.orden || (i + 1),
+              metadata.es_portada || false
+            ]);
+          }
+        }
+      } catch (e) {
+        console.warn('Error procesando imágenes:', e);
+      }
+    }
     
     res.status(201).json({
       message: 'Archivo creado exitosamente',
@@ -227,7 +313,7 @@ exports.createArchivo = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al crear archivo:', error);
-    res.status(500).json({ error: 'Error al crear archivo' });
+    res.status(500).json({ error: 'Error al crear archivo: ' + error.message });
   }
 };
 
@@ -235,12 +321,18 @@ exports.createArchivo = async (req, res) => {
 exports.updateArchivo = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('=== ACTUALIZANDO ARCHIVO ===');
+    console.log('ID del archivo:', id);
+    console.log('Body recibido:', req.body);
+    console.log('Files recibidos:', req.files);
+
+    // Extraer datos del FormData
     const {
-      id_extension_archivo,
-      id_categoria_archivo,
       nombre_archivo,
       descripcion,
-      precio
+      precio,
+      id_categoria_archivo,
+      id_extension_archivo
     } = req.body;
 
     // Verificar que existe el archivo
@@ -258,88 +350,107 @@ exports.updateArchivo = async (req, res) => {
       return res.status(400).json({ error: 'Nombre, descripción y precio son requeridos' });
     }
 
-    if (precio < 0) {
+    if (parseFloat(precio) < 0) {
       return res.status(400).json({ error: 'El precio debe ser mayor o igual a 0' });
     }
 
-    // Verificar categoría si se proporciona
-    if (id_categoria_archivo) {
-      const categoriaExists = await pool.query(
-        'SELECT * FROM categoria_archivo WHERE id_categoria_archivo = $1',
-        [id_categoria_archivo]
-      );
+    // Verificar categoría
+    const categoriaExists = await pool.query(
+      'SELECT * FROM categoria_archivo WHERE id_categoria_archivo = $1',
+      [id_categoria_archivo]
+    );
 
-      if (categoriaExists.rows.length === 0) {
-        return res.status(400).json({ error: 'Categoría no encontrada' });
-      }
+    if (categoriaExists.rows.length === 0) {
+      return res.status(400).json({ error: 'Categoría no encontrada' });
     }
 
-    // Verificar extensión si se proporciona
-    if (id_extension_archivo) {
-      const extensionExists = await pool.query(
-        'SELECT * FROM extension_archivo WHERE id_extension_archivo = $1',
-        [id_extension_archivo]
-      );
+    // Verificar extensión
+    const extensionExists = await pool.query(
+      'SELECT * FROM extension_archivo WHERE id_extension_archivo = $1',
+      [id_extension_archivo]
+    );
 
-      if (extensionExists.rows.length === 0) {
-        return res.status(400).json({ error: 'Extensión no encontrada' });
-      }
+    if (extensionExists.rows.length === 0) {
+      return res.status(400).json({ error: 'Extensión no encontrada' });
     }
 
-    // Construir query dinámico
-    let updateFields = [];
-    let values = [];
-    let paramCount = 1;
-
-    if (nombre_archivo) {
-      updateFields.push(`nombre_archivo = $${paramCount}`);
-      values.push(nombre_archivo.trim());
-      paramCount++;
-    }
-
-    if (descripcion) {
-      updateFields.push(`descripcion = $${paramCount}`);
-      values.push(descripcion.trim());
-      paramCount++;
-    }
-
-    if (precio !== undefined) {
-      updateFields.push(`precio = $${paramCount}`);
-      values.push(precio);
-      paramCount++;
-    }
-
-    if (id_categoria_archivo) {
-      updateFields.push(`id_categoria_archivo = $${paramCount}`);
-      values.push(id_categoria_archivo);
-      paramCount++;
-    }
-
-    if (id_extension_archivo) {
-      updateFields.push(`id_extension_archivo = $${paramCount}`);
-      values.push(id_extension_archivo);
-      paramCount++;
-    }
-
-    values.push(id);
-
-    const result = await pool.query(`
-      UPDATE archivos 
-      SET ${updateFields.join(', ')}
-      WHERE id_archivo = $${paramCount}
-      RETURNING *
-    `, values);
-
-    const updatedArchivo = result.rows[0];
-    console.log(`Archivo actualizado: ${updatedArchivo.nombre_archivo}`);
+    // Actualizar archivo en la base de datos
+    let rutaArchivo = exists.rows[0].ruta_archivo; // Mantener la ruta actual por defecto
     
+    // Si se subió un nuevo archivo principal, actualizar la ruta
+    if (req.files && req.files.archivo_producto && req.files.archivo_producto[0]) {
+      rutaArchivo = req.files.archivo_producto[0].filename;
+    }
+
+    const updateResult = await pool.query(`
+      UPDATE archivos 
+      SET 
+        nombre_archivo = $1,
+        descripcion = $2,
+        precio = $3,
+        id_categoria_archivo = $4,
+        id_extension_archivo = $5,
+        ruta_archivo = $6
+      WHERE id_archivo = $7
+      RETURNING *
+    `, [
+      nombre_archivo,
+      descripcion,
+      parseFloat(precio),
+      parseInt(id_categoria_archivo),
+      parseInt(id_extension_archivo),
+      rutaArchivo,
+      id
+    ]);
+
+    // Manejar nuevas imágenes si se subieron
+    if (req.files && req.files.imagenes_nuevas && req.files.imagenes_nuevas.length > 0) {
+      const nuevasImagenesMetadata = req.body.nuevas_imagenes_metadata ? 
+        JSON.parse(req.body.nuevas_imagenes_metadata) : [];
+
+      for (let i = 0; i < req.files.imagenes_nuevas.length; i++) {
+        const imagen = req.files.imagenes_nuevas[i];
+        const metadata = nuevasImagenesMetadata[i] || { orden: i + 1, es_portada: false };
+
+        await pool.query(`
+          INSERT INTO imagenes_archivo (id_archivo, url_imagen, orden, es_portada)
+          VALUES ($1, $2, $3, $4)
+        `, [
+          id,
+          imagen.filename,
+          metadata.orden,
+          metadata.es_portada
+        ]);
+      }
+    }
+
+    // Actualizar metadata de imágenes existentes si se proporcionó
+    if (req.body.imagenes_existentes_metadata) {
+      const imagenesExistentes = JSON.parse(req.body.imagenes_existentes_metadata);
+      
+      for (const imagen of imagenesExistentes) {
+        await pool.query(`
+          UPDATE imagenes_archivo 
+          SET orden = $1, es_portada = $2
+          WHERE id_imagenes_archivo = $3 AND id_archivo = $4
+        `, [
+          imagen.orden,
+          imagen.es_portada,
+          imagen.id_imagenes_archivo,
+          id
+        ]);
+      }
+    }
+
+    console.log('Archivo actualizado exitosamente:', updateResult.rows[0]);
     res.json({
       message: 'Archivo actualizado exitosamente',
-      archivo: updatedArchivo
+      archivo: updateResult.rows[0]
     });
+
   } catch (error) {
     console.error('Error al actualizar archivo:', error);
-    res.status(500).json({ error: 'Error al actualizar archivo' });
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 
@@ -347,6 +458,14 @@ exports.updateArchivo = async (req, res) => {
 exports.toggleArchivoEstado = async (req, res) => {
   try {
     const { id } = req.params;
+    const { activo } = req.body;
+    
+    // Validar que se envió el campo activo
+    if (typeof activo !== 'boolean') {
+      return res.status(400).json({ 
+        error: 'Se requiere el campo "activo" con valor booleano' 
+      });
+    }
     
     // Verificar que existe el archivo
     const exists = await pool.query(
@@ -358,10 +477,10 @@ exports.toggleArchivoEstado = async (req, res) => {
       return res.status(404).json({ error: 'Archivo no encontrado' });
     }
 
-    // Cambiar estado
+    // Cambiar estado al valor específico
     const result = await pool.query(
-      'UPDATE archivos SET activo = NOT activo WHERE id_archivo = $1 RETURNING *',
-      [id]
+      'UPDATE archivos SET activo = $1 WHERE id_archivo = $2 RETURNING *',
+      [activo, id]
     );
 
     const updatedArchivo = result.rows[0];

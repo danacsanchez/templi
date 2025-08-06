@@ -7,6 +7,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Servir archivos estáticos (imágenes y archivos subidos)
+app.use('/uploads', express.static('uploads'));
+
 // Rutas existentes
 const archivosRoutes = require('./routes/archivos.routes');
 app.use('/api/archivos', archivosRoutes);

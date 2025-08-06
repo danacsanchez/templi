@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import ArchivosTable from './ArchivosTable';
 
 const VendedorDashboard = ({ onLogout, user }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
-  const [selectedSection, setSelectedSection] = useState(null);
+  const [selectedSection, setSelectedSection] = useState('dashboard');
 
   return (
     <div style={styles.container}>
@@ -107,12 +108,7 @@ const VendedorDashboard = ({ onLogout, user }) => {
           </div>
         )}
         {selectedSection === 'archivos' && (
-          <div style={styles.welcomeCard}>
-            <h2 style={styles.sectionTitle}>Mis Archivos</h2>
-            <p style={styles.description}>
-              Aquí podrás gestionar todos tus archivos digitales, subirlos, editarlos y ver las estadísticas de ventas.
-            </p>
-          </div>
+          <ArchivosTable vendedorId={user?.id_vendedor} />
         )}
         {selectedSection === 'configuracion' && (
           <div style={styles.welcomeCard}>

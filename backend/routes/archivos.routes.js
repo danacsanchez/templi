@@ -14,10 +14,10 @@ router.get('/:id', archivosController.getArchivoById);
 router.get('/vendedor/mis-archivos', archivosController.getMisArchivos);
 
 // POST /api/archivos - Crear nuevo archivo
-router.post('/', archivosController.createArchivo);
+router.post('/', archivosController.uploadMiddleware, archivosController.createArchivo);
 
 // PUT /api/archivos/:id - Actualizar archivo
-router.put('/:id', archivosController.updateArchivo);
+router.put('/:id', archivosController.uploadMiddleware, archivosController.updateArchivo);
 
 // PUT /api/archivos/:id/toggle-estado - Activar/Desactivar archivo
 router.put('/:id/toggle-estado', archivosController.toggleArchivoEstado);

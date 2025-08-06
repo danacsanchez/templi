@@ -89,10 +89,14 @@ exports.register = async (req, res) => {
 
       // Obtener usuario completo con información del tipo
       const userWithType = await pool.query(
-        `SELECT u.*, tu.nombre as rol, g.nombre as genero
+        `SELECT u.*, tu.nombre as rol, g.nombre as genero,
+                v.id_vendedor,
+                c.id_cliente
          FROM usuarios u 
          JOIN tipo_usuarios tu ON u.id_tipo_usuario = tu.id_tipo_usuario 
          JOIN genero_usuario g ON u.id_genero_usuario = g.id_genero_usuario
+         LEFT JOIN vendedor v ON u.id_usuario = v.id_usuario AND u.id_tipo_usuario = 2
+         LEFT JOIN cliente c ON u.id_usuario = c.id_usuario AND u.id_tipo_usuario = 1
          WHERE u.id_usuario = $1`,
         [newUser.id_usuario]
       );
@@ -139,10 +143,14 @@ exports.login = async (req, res) => {
 
     // Buscar usuario con información completa
     const result = await pool.query(
-      `SELECT u.*, tu.nombre as rol, g.nombre as genero
+      `SELECT u.*, tu.nombre as rol, g.nombre as genero,
+              v.id_vendedor,
+              c.id_cliente
        FROM usuarios u 
        JOIN tipo_usuarios tu ON u.id_tipo_usuario = tu.id_tipo_usuario 
        JOIN genero_usuario g ON u.id_genero_usuario = g.id_genero_usuario
+       LEFT JOIN vendedor v ON u.id_usuario = v.id_usuario AND u.id_tipo_usuario = 2
+       LEFT JOIN cliente c ON u.id_usuario = c.id_usuario AND u.id_tipo_usuario = 1
        WHERE u.email = $1`,
       [email]
     );

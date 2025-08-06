@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // ← Agregar onProfileClick
+const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick, onMarketplaceClick }) => { // ← Agregar onMarketplaceClick
   const [isHovered, setIsHovered] = useState(false);
   const [isLoginHovered, setIsLoginHovered] = useState(false);
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -89,9 +89,9 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // �
             Explora una amplia colección de archivos útiles y listos para descargar, creados por personas que entienden lo que necesitas.
           </p>
 
-          {/* CTA Button - Cambiar texto si está logueado */}
+          {/* CTA Button - Siempre va al marketplace */}
           <button
-            onClick={user ? () => alert('Navegando al marketplace...') : onLoginClick}
+            onClick={onMarketplaceClick}
             style={{
               ...styles.ctaButton,
               ...(isHovered ? styles.ctaButtonHover : {})
@@ -100,7 +100,7 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick }) => { // �
             onMouseLeave={() => setIsHovered(false)}
           >
             <span style={styles.buttonText}>
-              {user ? 'Explorar Marketplace' : 'Unirse a Templi'}
+              {user ? 'Explorar Marketplace' : 'Explorar Marketplace'}
             </span>
             <span className="material-symbols-outlined" style={styles.buttonIcon}>
               keyboard_arrow_right

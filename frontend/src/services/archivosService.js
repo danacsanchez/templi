@@ -524,22 +524,89 @@ export const buscarArchivos = async (termino, filtros = {}) => {
 /**
  * Descargar archivo
  */
-export const descargarArchivo = async (id) => {
+export const descargarArchivo = async (id, nombreArchivo = 'archivo') => {
   try {
-    const response = await fetch(`${API_URL}/api/archivos/${id}/descargar`, {
+    console.log('Iniciando descarga del archivo ID:', id);
+    
+    const response = await fetch(`${API_URL}/api/archivos/${id}/download`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
 
+    console.log('Respuesta del servidor:', response.status, response.statusText);
+
     if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Error del servidor:', errorText);
+      
+      let errorMessage = `Error ${response.status}: ${response.statusText}`;
+      
+      // Intentar parsear JSON del error
+      if (errorText.trim().startsWith('{') || errorText.trim().startsWith('[')) {
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.warn('No se pudo parsear el error como JSON:', e);
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
-    // El backend debería retornar el archivo para descarga
+    console.log('Respuesta exitosa, procesando blob...');
+
+    // Obtener el blob del archivo
     const blob = await response.blob();
-    return blob;
+    console.log('Blob creado, tamaño:', blob.size, 'bytes, tipo:', blob.type);
+    
+    // Obtener el nombre del archivo desde el header Content-Disposition si está disponible
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let fileName = nombreArchivo;
+    
+    console.log('Todos los headers de la respuesta:');
+    for (const [key, value] of response.headers.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+    
+    if (contentDisposition) {
+      console.log('Content-Disposition header encontrado:', contentDisposition);
+      const fileNameMatch = contentDisposition.match(/filename="([^"]+)"/);
+      if (fileNameMatch) {
+        fileName = fileNameMatch[1];
+        console.log('Nombre de archivo extraído del header:', fileName);
+      } else {
+        console.log('No se pudo extraer el nombre del archivo del header Content-Disposition');
+      }
+    } else {
+      console.log('❌ No hay Content-Disposition header');
+      // Si no hay header Content-Disposition, agregar extensión por defecto
+      if (!fileName.includes('.')) {
+        fileName = `${fileName}.pdf`; // Extensión por defecto
+        console.log('Agregando extensión por defecto:', fileName);
+      }
+    }
+
+    // Crear link temporal para descargar
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    
+    console.log('Creando descarga automática para:', fileName);
+    
+    // Agregar al DOM temporalmente y hacer click
+    document.body.appendChild(link);
+    link.click();
+    
+    // Limpiar
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    console.log('Descarga completada exitosamente');
+    return { success: true, fileName };
   } catch (error) {
     console.error('Error descargando archivo:', error);
     throw error;

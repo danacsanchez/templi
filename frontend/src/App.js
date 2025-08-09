@@ -6,12 +6,14 @@ import VendedorDashboard from './components/VendedorDashboard';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import UserProfile from './components/UserProfile'; 
 import Marketplace from './components/Marketplace';
+import ArchivoDetalle from './components/ArchivoDetalle';
 import { authService } from './services/authService';
 import './App.css';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('landing');
   const [user, setUser] = useState(null);
+  const [selectedArchivoId, setSelectedArchivoId] = useState(null);
 
   const handleLoginClick = () => {
     setCurrentPage('login');
@@ -46,6 +48,16 @@ const App = () => {
 
   const handleMarketplaceClick = () => {
     setCurrentPage('marketplace');
+  };
+
+  const handleArchivoClick = (archivoId) => {
+    setSelectedArchivoId(archivoId);
+    setCurrentPage('archivo-detalle');
+  };
+
+  const handleBackToMarketplace = () => {
+    setCurrentPage('marketplace');
+    setSelectedArchivoId(null);
   };
 
   const handleBackToHome = () => {
@@ -113,6 +125,18 @@ const App = () => {
           <Marketplace
             user={user}
             onBackToHome={handleBackToHome}
+            onProfileClick={handleProfileClick}
+            onLoginClick={handleLoginClick}
+            onArchivoClick={handleArchivoClick}
+          />
+        );
+      
+      case 'archivo-detalle':
+        return (
+          <ArchivoDetalle
+            archivoId={selectedArchivoId}
+            user={user}
+            onBackToMarketplace={handleBackToMarketplace}
             onProfileClick={handleProfileClick}
             onLoginClick={handleLoginClick}
           />

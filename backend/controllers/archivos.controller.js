@@ -1,6 +1,7 @@
 const pool = require('../db');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 // Configurar multer para manejar uploads
 const storage = multer.diskStorage({
@@ -575,5 +576,76 @@ exports.incrementarDescargas = async (req, res) => {
   } catch (error) {
     console.error('Error al incrementar descargas:', error);
     res.status(500).json({ error: 'Error al incrementar descargas' });
+  }
+};
+
+// Descargar archivo
+exports.downloadArchivo = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verificar que existe el archivo en la base de datos
+    const result = await pool.query(
+      'SELECT * FROM archivos WHERE id_archivo = $1 AND activo = true',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Archivo no encontrado o no disponible' });
+    }
+
+    const archivo = result.rows[0];
+    const rutaCompleta = path.join(__dirname, '../uploads', archivo.ruta_archivo);
+
+    console.log('Buscando archivo en:', rutaCompleta);
+    console.log('Archivo en BD:', archivo.ruta_archivo);
+
+    // Verificar que el archivo físico existe
+    if (!fs.existsSync(rutaCompleta)) {
+      console.error(`Archivo físico no encontrado: ${rutaCompleta}`);
+      return res.status(404).json({ error: 'Archivo físico no encontrado en el servidor' });
+    }
+
+    // Incrementar contador de descargas
+    await pool.query(
+      'UPDATE archivos SET num_descargas = num_descargas + 1 WHERE id_archivo = $1',
+      [id]
+    );
+
+    // Obtener información del archivo
+    const stats = fs.statSync(rutaCompleta);
+    const fileExtension = path.extname(archivo.ruta_archivo);
+    const fileName = `${archivo.nombre_archivo}${fileExtension}`;
+    
+    // Configurar headers para forzar la descarga
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Length', stats.size);
+    res.setHeader('Cache-Control', 'no-cache');
+
+    console.log(`Iniciando descarga: ${fileName} (${stats.size} bytes)`);
+
+    // Crear stream y enviar el archivo
+    const fileStream = fs.createReadStream(rutaCompleta);
+    
+    fileStream.on('error', (error) => {
+      console.error('Error al leer archivo:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Error al leer el archivo' });
+      }
+    });
+
+    fileStream.on('end', () => {
+      console.log(`Archivo descargado exitosamente: ${fileName} (ID: ${id})`);
+    });
+
+    // Pipe el archivo a la respuesta
+    fileStream.pipe(res);
+
+  } catch (error) {
+    console.error('Error en descarga de archivo:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
   }
 };

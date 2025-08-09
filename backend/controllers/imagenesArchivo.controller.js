@@ -1,5 +1,20 @@
 const pool = require('../db');
 
+// Obtener todas las imágenes
+exports.getAllImagenes = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM imagenes_archivo ORDER BY id_archivo ASC, orden ASC, id_imagenes_archivo ASC'
+    );
+    
+    console.log(`Total de imágenes: ${result.rows.length}`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener todas las imágenes:', error);
+    res.status(500).json({ error: 'Error al obtener todas las imágenes' });
+  }
+};
+
 // Obtener todas las imágenes de un archivo específico
 exports.getImagenesArchivo = async (req, res) => {
   try {

@@ -4,7 +4,9 @@ const cors = require('cors');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  exposedHeaders: ['Content-Disposition']
+}));
 app.use(express.json());
 
 // Servir archivos estáticos (imágenes y archivos subidos)
@@ -36,7 +38,7 @@ app.use('/api/generos', generoUsuarioRoutes);
 
 // Rutas de imágenes de archivo
 const imagenesArchivoRoutes = require('./routes/imagenesArchivo.routes');
-app.use('/api/imagenes', imagenesArchivoRoutes);
+app.use('/api/imagenes-archivo', imagenesArchivoRoutes);
 
 const transaccionesRoutes = require('./routes/transacciones.routes');
 app.use('/api/transacciones', transaccionesRoutes);
@@ -84,9 +86,9 @@ app.listen(PORT, () => {
   console.log('   POST   /api/generos');
   console.log('   PUT    /api/generos/:id');
   console.log('   DELETE /api/generos/:id');
-  console.log('* Rutas de tipos de usuario disponibles:'); // 🆕 NUEVO
-  console.log('   GET    /api/tipo-usuarios');               // 🆕 NUEVO
-  console.log('   GET    /api/tipo-usuarios/:id');           // 🆕 NUEVO
+  console.log('* Rutas de tipos de usuario disponibles:'); 
+  console.log('   GET    /api/tipo-usuarios');               
+  console.log('   GET    /api/tipo-usuarios/:id');           
   console.log('* Rutas de archivos disponibles:');
   console.log('   GET    /api/archivos');
   console.log('   GET    /api/archivos/:id');
@@ -95,16 +97,18 @@ app.listen(PORT, () => {
   console.log('   PUT    /api/archivos/:id');
   console.log('   PUT    /api/archivos/:id/toggle-estado');
   console.log('   POST   /api/archivos/:id/descarga');
+  console.log('   GET    /api/archivos/:id/download');
   console.log('   DELETE /api/archivos/:id');
   console.log('* Rutas de imágenes disponibles:');
-  console.log('   GET    /api/imagenes/archivo/:archivo_id');
-  console.log('   GET    /api/imagenes/archivo/:archivo_id/portada');
-  console.log('   GET    /api/imagenes/:id');
-  console.log('   POST   /api/imagenes/archivo/:archivo_id');
-  console.log('   PUT    /api/imagenes/:id');
-  console.log('   PUT    /api/imagenes/:id/portada');
-  console.log('   PUT    /api/imagenes/archivo/:archivo_id/reordenar');
-  console.log('   DELETE /api/imagenes/:id');
+  console.log('   GET    /api/imagenes-archivo');
+  console.log('   GET    /api/imagenes-archivo/archivo/:archivo_id');
+  console.log('   GET    /api/imagenes-archivo/archivo/:archivo_id/portada');
+  console.log('   GET    /api/imagenes-archivo/:id');
+  console.log('   POST   /api/imagenes-archivo/archivo/:archivo_id');
+  console.log('   PUT    /api/imagenes-archivo/:id');
+  console.log('   PUT    /api/imagenes-archivo/:id/portada');
+  console.log('   PUT    /api/imagenes-archivo/archivo/:archivo_id/reordenar');
+  console.log('   DELETE /api/imagenes-archivo/:id');
   console.log('* Rutas de transacciones disponibles:');
   console.log('   GET    /api/transacciones');
   console.log('   GET    /api/transacciones/estadisticas');

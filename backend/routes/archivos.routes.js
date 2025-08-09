@@ -25,6 +25,9 @@ router.put('/:id/toggle-estado', archivosController.toggleArchivoEstado);
 // POST /api/archivos/:id/descarga - Incrementar contador de descargas
 router.post('/:id/descarga', archivosController.incrementarDescargas);
 
+// GET /api/archivos/:id/download - Descargar archivo
+router.get('/:id/download', archivosController.downloadArchivo);
+
 // DELETE /api/archivos/:id - Eliminar archivo
 router.delete('/:id', archivosController.deleteArchivo);
 

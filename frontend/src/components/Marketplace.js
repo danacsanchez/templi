@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getArchivos } from '../services/archivosService';
 import { getCategoriasArchivo } from '../services/categoriaArchivoService';
 
-const Marketplace = ({ user, onBackToHome, onProfileClick, onLoginClick }) => {
+const Marketplace = ({ user, onBackToHome, onProfileClick, onLoginClick, onArchivoClick }) => {
   const [archivos, setArchivos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,8 +66,8 @@ const Marketplace = ({ user, onBackToHome, onProfileClick, onLoginClick }) => {
       alert('Para comprar archivos necesitas crear una cuenta. ¡Regístrate gratis!');
       return;
     }
-    // TODO: Implementar lógica de compra
-    alert(`Comprando: ${archivo.nombre_archivo} por $${parseFloat(archivo.precio).toFixed(2)}`);
+    // Navegar a la página de detalles del archivo
+    onArchivoClick(archivo.id_archivo);
   };
 
   if (loading) {

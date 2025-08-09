@@ -30,6 +30,31 @@ export const getArchivos = async () => {
 };
 
 /**
+ * Obtener archivos de un vendedor específico (para dashboard del vendedor)
+ */
+export const getArchivosByVendedor = async (vendedorId) => {
+  try {
+    const response = await fetch(`${API_URL}/api/archivos/vendedor/${vendedorId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error obteniendo archivos del vendedor:', error);
+    throw error;
+  }
+};
+
+/**
  * Obtener un archivo por ID (con sus imágenes)
  */
 export const getArchivoById = async (id) => {
@@ -57,7 +82,7 @@ export const getArchivoById = async (id) => {
 /**
  * Crear un nuevo archivo con sus imágenes
  */
-export const createArchivo = async (datosArchivo) => {
+export const createArchivo = async (datosArchivo, vendedorId) => {
   try {
     const formData = new FormData();
     
@@ -68,9 +93,11 @@ export const createArchivo = async (datosArchivo) => {
     formData.append('id_categoria_archivo', datosArchivo.id_categoria_archivo.toString());
     formData.append('id_extension_archivo', datosArchivo.id_extension_archivo.toString());
     
-    // TODO: En producción esto vendrá del token JWT
-    // Por ahora usar un vendedor de prueba
-    formData.append('id_vendedor', '1'); // Vendedor de prueba
+    // Usar el vendedor ID del usuario loggeado
+    if (!vendedorId) {
+      throw new Error('ID de vendedor requerido para crear archivo');
+    }
+    formData.append('id_vendedor', vendedorId.toString());
     
     // Por ahora enviar un nombre de archivo temporal
     if (datosArchivo.archivo_producto) {

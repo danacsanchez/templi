@@ -3,7 +3,7 @@ import { getCategoriasArchivo } from '../services/categoriaArchivoService';
 import { getExtensionesArchivo } from '../services/extensionArchivoService';
 import { createArchivo, updateArchivo, getArchivoById } from '../services/archivosService';
 
-const ArchivoForm = ({ archivo, onSave, onCancel }) => {
+const ArchivoForm = ({ archivo, vendedorId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     nombre_archivo: '',
     descripcion: '',
@@ -280,7 +280,12 @@ const ArchivoForm = ({ archivo, onSave, onCancel }) => {
         // Actualizar archivo existente
         resultado = await updateArchivo(archivo.id_archivo, datosArchivo);
       } else {
-        // Crear nuevo archivo - para crear necesito la estructura original con file
+        // Crear nuevo archivo - verificar que tenemos vendedorId
+        if (!vendedorId) {
+          throw new Error('ID de vendedor requerido para crear archivo');
+        }
+        
+        // Para crear necesito la estructura original con file
         const datosCreacion = {
           ...datosArchivo,
           imagenes: formData.imagenes.map(img => ({
@@ -289,7 +294,7 @@ const ArchivoForm = ({ archivo, onSave, onCancel }) => {
             file: img.file
           }))
         };
-        resultado = await createArchivo(datosCreacion);
+        resultado = await createArchivo(datosCreacion, vendedorId);
       }
 
       console.log('Archivo guardado exitosamente:', resultado);

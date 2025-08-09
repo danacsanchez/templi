@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ArchivoForm from './ArchivoForm';
-import { getArchivos, deleteArchivo, toggleArchivoActivo } from '../services/archivosService';
+import { getArchivos, getArchivosByVendedor, deleteArchivo, toggleArchivoActivo } from '../services/archivosService';
 import { getCategoriasArchivo } from '../services/categoriaArchivoService';
 import { getExtensionesArchivo } from '../services/extensionArchivoService';
 
-const ArchivosTable = () => {
+const ArchivosTable = ({ vendedorId }) => {
   const [archivos, setArchivos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,13 +47,31 @@ const ArchivosTable = () => {
     return extension ? extension.nombre : 'Sin extensión';
   };
 
+  // Función helper para recargar archivos
+  const reloadArchivos = async () => {
+    try {
+      const archivosResponse = vendedorId 
+        ? await getArchivosByVendedor(vendedorId)
+        : await getArchivos();
+      setArchivos(archivosResponse || []);
+    } catch (error) {
+      console.error('Error al recargar archivos:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         
+        // Usar el servicio apropiado según si es para un vendedor específico o todos los archivos
+        const archivosPromise = vendedorId 
+          ? getArchivosByVendedor(vendedorId)
+          : getArchivos();
+        
         const [archivosResponse, categoriasData, extensionesData] = await Promise.all([
-          getArchivos(),
+          archivosPromise,
           getCategoriasArchivo(),
           getExtensionesArchivo()
         ]);
@@ -62,6 +80,11 @@ const ArchivosTable = () => {
         setCategorias(categoriasData || []);
         setExtensiones(extensionesData || []);
         setLoading(false);
+        
+        console.log(vendedorId 
+          ? `Archivos cargados para vendedor ${vendedorId}: ${archivosResponse?.length || 0}` 
+          : `Todos los archivos cargados: ${archivosResponse?.length || 0}`
+        );
       } catch (err) {
         console.error('Error cargando datos:', err);
         setError(err.message);
@@ -70,7 +93,7 @@ const ArchivosTable = () => {
     };
 
     loadData();
-  }, []);
+  }, [vendedorId]); // Agregar vendedorId como dependencia
 
   useEffect(() => {
     if (!openMenu) return;
@@ -100,8 +123,7 @@ const ArchivosTable = () => {
     }
     try {
       // Recargar datos y volver al listado
-      const archivosResponse = await getArchivos();
-      setArchivos(archivosResponse || []);
+      await reloadArchivos();
       setShowForm(false);
       setFormArchivo(null);
       showNotification(formArchivo ? 'Archivo modificado con éxito' : 'Archivo añadido con éxito');
@@ -123,8 +145,7 @@ const ArchivosTable = () => {
       // En lugar de eliminar físicamente, desactivamos el archivo
       await toggleArchivoActivo(archivoToDelete.id_archivo, false);
       showNotification('Archivo eliminado con éxito', 'success');
-      const archivosResponse = await getArchivos();
-      setArchivos(archivosResponse || []);
+      await reloadArchivos();
     } catch (error) {
       console.error('Error al eliminar archivo:', error);
       showNotification('Error al eliminar el archivo', 'error');
@@ -187,6 +208,7 @@ const ArchivosTable = () => {
     return (
       <ArchivoForm
         archivo={formArchivo}
+        vendedorId={vendedorId}
         onSave={handleSaveArchivo}
         onCancel={handleCancelForm}
       />

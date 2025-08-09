@@ -6,6 +6,9 @@ const archivosController = require('../controllers/archivos.controller');
 // GET /api/archivos - Obtener archivos públicos con filtros
 router.get('/', archivosController.getArchivos);
 
+// GET /api/archivos/vendedor/:vendedorId - Obtener archivos de un vendedor específico
+router.get('/vendedor/:vendedorId', archivosController.getArchivosByVendedor);
+
 // GET /api/archivos/:id - Obtener archivo específico con imágenes
 router.get('/:id', archivosController.getArchivoById);
 

@@ -4,6 +4,7 @@ import { getImagenesArchivoByFileId } from '../services/imagenesArchivoService';
 import { getUsuarioById } from '../services/usuariosService';
 import { getCategoriasArchivo } from '../services/categoriaArchivoService';
 import { getExtensionesArchivo } from '../services/extensionArchivoService';
+import PayPalCheckout from './PayPalCheckout';
 
 const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, onLoginClick }) => {
   const [archivo, setArchivo] = useState(null);
@@ -16,6 +17,12 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
   const [imageError, setImageError] = useState(false);
   const [isLoginHovered, setIsLoginHovered] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  
+  // Estados para PayPal checkout
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [transactionDetails, setTransactionDetails] = useState(null);
 
   useEffect(() => {
     const loadArchivoDetalle = async () => {
@@ -24,7 +31,16 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
         
         // Cargar datos del archivo
         const archivoData = await getArchivoById(archivoId);
+        console.log('Datos del archivo obtenidos:', archivoData);
         setArchivo(archivoData);
+
+        // Los datos del vendedor ya vienen en la respuesta del archivo
+        if (archivoData.vendedor_nombre) {
+          setVendedor({
+            nombre: archivoData.vendedor_nombre,
+            apellido: '' // El backend solo devuelve el nombre completo en vendedor_nombre
+          });
+        }
 
         // Cargar datos relacionados en paralelo
         const [imagenesData, categoriasData, extensionesData] = await Promise.all([
@@ -43,12 +59,6 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
         // Encontrar extensión
         const extensionArchivo = extensionesData.find(ext => ext.id_extension_archivo === archivoData.id_extension_archivo);
         setExtension(extensionArchivo);
-
-        // Cargar datos del vendedor
-        if (archivoData.id_usuario) {
-          const vendedorData = await getUsuarioById(archivoData.id_usuario);
-          setVendedor(vendedorData);
-        }
 
       } catch (error) {
         console.error('Error cargando detalles del archivo:', error);
@@ -89,35 +99,26 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
 
   const handleDownload = async () => {
     if (!user) {
-      alert('Debes iniciar sesión para descargar archivos');
+      alert('Debes iniciar sesión para comprar archivos');
       return;
     }
 
-    try {
-      setIsDownloading(true);
-      
-      // TEMPORAL: Permitir descarga sin verificar compra para pruebas
-      // En producción aquí verificaremos si el usuario ya compró el archivo
-      const haComprado = true; // TODO: Implementar verificación de compra real
-      
-      if (!haComprado) {
-        alert('Debes comprar el archivo antes de poder descargarlo');
-        return;
-      }
+    // Abrir modal de checkout de PayPal
+    setShowCheckout(true);
+  };
 
-      // Descargar archivo
-      const result = await descargarArchivo(archivo.id_archivo, archivo.nombre_archivo);
-      console.log('Descarga exitosa:', result.fileName);
-      
-      // Opcional: Mostrar mensaje de éxito
-      alert(`Descarga de "${result.fileName}" iniciada correctamente`);
-      
-    } catch (error) {
-      console.error('Error en descarga:', error);
-      alert(`Error al descargar el archivo: ${error.message}`);
-    } finally {
-      setIsDownloading(false);
-    }
+  const handlePaymentSuccess = (details) => {
+    console.log('Pago completado exitosamente:', details);
+    setTransactionDetails(details);
+    setPaymentSuccess(true);
+    setShowCheckout(false);
+    
+    // Mostrar mensaje de éxito
+    alert(`¡Compra exitosa! Tu archivo se ha descargado automáticamente.`);
+  };
+
+  const handleCloseCheckout = () => {
+    setShowCheckout(false);
   };
 
   const getCurrentImageUrl = () => {
@@ -305,29 +306,53 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
 
           {/* Right Column - Product Details */}
           <div style={styles.detailsSection}>
-            {/* Vendedor */}
-            <p style={styles.vendorName}>
-              {vendedor ? `${vendedor.nombre} ${vendedor.apellido}` : 'Información no disponible'}
-            </p>
+            {/* Vendedor con icono */}
+            <div style={styles.vendorContainer}>
+              <span className="material-symbols-outlined" style={styles.storeIcon}>storefront</span>
+              <p style={styles.vendorName}>
+                {archivo.vendedor_nombre || 'Información no disponible'}
+              </p>
+            </div>
 
             {/* Nombre del Producto */}
             <h1 style={styles.productTitle}>{archivo.nombre_archivo}</h1>
-
-            {/* Categoría y Extensión */}
-            <p style={styles.categoryExtension}>
-              {categoria?.nombre?.toUpperCase() || 'SIN CATEGORÍA'} • {extension?.nombre?.toUpperCase() || 'N/A'}
-            </p>
 
             {/* Precio */}
             <div style={styles.priceContainer}>
               <span style={styles.price}>${parseFloat(archivo.precio).toFixed(2)}</span>
             </div>
 
-            {/* Description */}
+            {/* Categoría y Extensión */}
+            <div style={styles.categoryExtensionContainer}>
+              <div style={styles.categoryTag}>
+                {categoria?.nombre?.toUpperCase() || 'SIN CATEGORÍA'}
+              </div>
+              <span style={styles.formatText}>
+                FORMATO: {extension?.nombre?.toUpperCase() || 'N/A'}
+              </span>
+            </div>
+
+            {/* Description Dropdown */}
             {archivo.descripcion && (
               <div style={styles.descriptionSection}>
-                <h3 style={styles.descriptionTitle}>Descripción</h3>
-                <p style={styles.descriptionText}>{archivo.descripcion}</p>
+                <button 
+                  onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
+                  style={styles.descriptionToggle}
+                >
+                  <span style={styles.descriptionTitle}>Descripción</span>
+                  <span 
+                    className="material-symbols-outlined" 
+                    style={{
+                      ...styles.dropdownIcon,
+                      transform: isDescriptionOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                    }}
+                  >
+                    keyboard_arrow_down
+                  </span>
+                </button>
+                {isDescriptionOpen && (
+                  <p style={styles.descriptionText}>{archivo.descripcion}</p>
+                )}
               </div>
             )}
 
@@ -352,19 +377,25 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
                 Comprar con PayPal
               </button>
               
-              <button 
-                onClick={handleDownload}
-                style={{
-                  ...styles.downloadButton,
-                  ...(isDownloading ? styles.downloadButtonDisabled : {})
-                }}
-                disabled={!user || isDownloading}
-              >
-                <span style={styles.downloadIcon}>
-                  {isDownloading ? '⏳' : '⬇️'}
-                </span>
-                {isDownloading ? 'Descargando...' : 'Descargar Archivo'}
-              </button>
+              <div style={styles.downloadContainer}>
+                <button 
+                  onClick={handleDownload}
+                  style={{
+                    ...styles.buyButton,
+                    ...(isDownloading ? styles.buyButtonDisabled : {})
+                  }}
+                  disabled={!user || isDownloading}
+                >
+                  <span className="material-symbols-outlined" style={styles.buyIcon}>shopping_cart</span>
+                  Comprar con PayPal
+                </button>
+                
+                <button style={styles.favoriteButton}>
+                  <span className="material-symbols-outlined" style={styles.favoriteIcon}>
+                    favorite
+                  </span>
+                </button>
+              </div>
               
               {!user && (
                 <p style={styles.loginPrompt}>
@@ -375,19 +406,38 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
 
             {/* Security Info */}
             <div style={styles.securityInfo}>
-              <p style={styles.securityText}>
-                🔒 <strong>Compra segura</strong> - Transacción protegida por PayPal
-              </p>
-              <p style={styles.securityText}>
-                ⬇️ <strong>Descarga inmediata</strong> - Acceso al archivo tras completar el pago
-              </p>
-              <p style={styles.securityText}>
-                📁 <strong>Archivo original</strong> - Descarga directa del archivo del vendedor
-              </p>
+              <div style={styles.securityItem}>
+                <span className="material-symbols-outlined" style={styles.securityIcon}>lock</span>
+                <span style={styles.securityText}>
+                  Realiza tus compras con total tranquilidad gracias a la protección de PayPal, que garantiza que tu pago esté seguro y que puedas resolver cualquier inconveniente de forma sencilla.
+                </span>
+              </div>
+              <div style={styles.securityItem}>
+                <span className="material-symbols-outlined" style={styles.securityIcon}>hand_package</span>
+                <span style={styles.securityText}>
+                  Una vez que tu pago se confirme, recibirás acceso inmediato para descargar tu archivo, sin esperas ni pasos adicionales, listo para que lo uses al instante.
+                </span>
+              </div>
+              <div style={styles.securityItem}>
+                <span className="material-symbols-outlined" style={styles.securityIcon}>verified</span>
+                <span style={styles.securityText}>
+                  Descarga directamente el archivo original tal como el vendedor lo publicó, asegurando que obtengas el contenido exacto, completo y en la mejor calidad disponible.
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* PayPal Checkout Modal */}
+      {showCheckout && archivo && (
+        <PayPalCheckout
+          archivo={archivo}
+          user={user}
+          onClose={handleCloseCheckout}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 };
@@ -640,8 +690,20 @@ const styles = {
   detailsSection: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    gap: '12px', // Reducido de 16px a 12px
     textAlign: 'left',
+  },
+
+  vendorContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '4px', // Agregado pequeño margen
+  },
+
+  storeIcon: {
+    fontSize: '16px',
+    color: '#86868b',
   },
 
   vendorName: {
@@ -656,30 +718,47 @@ const styles = {
     fontSize: '32px',
     fontWeight: '600',
     color: '#1d1d1f',
-    margin: '8px 0',
+    margin: '4px 0', // Reducido de 8px a 4px
     lineHeight: '1.2',
     textAlign: 'left',
     fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
 
-  categoryExtension: {
-    fontSize: '13px',
-    color: '#86868b',
-    margin: '0 0 16px 0',
-    fontWeight: '500',
-    letterSpacing: '0.5px',
-    textAlign: 'left',
-    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-
   priceContainer: {
-    marginBottom: '32px',
+    marginBottom: '8px', // Reducido de 16px a 8px
   },
 
   price: {
     fontSize: '28px',
     fontWeight: '600',
-    color: '#1d1d1f',
+    color: '#70AD47',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+
+  categoryExtensionContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '16px', // Reducido de 24px a 16px
+  },
+
+  categoryTag: {
+    padding: '6px 12px',
+    backgroundColor: 'transparent',
+    border: '1px solid #86868b',
+    borderRadius: '16px',
+    fontSize: '12px',
+    fontWeight: '500',
+    color: '#86868b',
+    letterSpacing: '0.5px',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+
+  formatText: {
+    fontSize: '13px',
+    color: '#86868b',
+    fontWeight: '500',
+    letterSpacing: '0.5px',
     fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
 
@@ -687,20 +766,37 @@ const styles = {
     marginBottom: '24px',
   },
 
+  descriptionToggle: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    padding: '12px 0',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'color 0.2s ease',
+  },
+
   descriptionTitle: {
     fontSize: '18px',
     fontWeight: '600',
     color: '#1d1d1f',
-    margin: '0 0 12px 0',
     textAlign: 'left',
     fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+
+  dropdownIcon: {
+    fontSize: '24px',
+    color: '#86868b',
+    transition: 'transform 0.2s ease',
   },
 
   descriptionText: {
     fontSize: '14px',
     color: '#515154',
     lineHeight: '1.6',
-    margin: 0,
+    margin: '12px 0 0 0',
     textAlign: 'left',
     fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
@@ -778,6 +874,58 @@ const styles = {
     fontSize: '20px',
   },
 
+  downloadContainer: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'center',
+    marginBottom: '12px',
+  },
+
+  buyButton: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '16px 24px',
+    backgroundColor: '#1d1d1f',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+
+  buyButtonDisabled: {
+    backgroundColor: '#86868b',
+    cursor: 'not-allowed',
+  },
+
+  buyIcon: {
+    fontSize: '18px',
+    marginRight: '8px',
+  },
+
+  favoriteButton: {
+    width: '52px',
+    height: '52px',
+    backgroundColor: '#f5f5f7',
+    border: 'none',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+  },
+
+  favoriteIcon: {
+    fontSize: '24px',
+    color: '#86868b',
+  },
+
   loginPrompt: {
     fontSize: '12px',
     color: '#86868b',
@@ -789,14 +937,28 @@ const styles = {
   securityInfo: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '16px',
+  },
+
+  securityItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+
+  securityIcon: {
+    fontSize: '24px',
+    color: '#86868b',
+    flexShrink: 0,
   },
 
   securityText: {
-    fontSize: '12px',
+    fontSize: '13px', // Aumenté de 12px a 14px
     color: '#86868b',
     margin: 0,
     textAlign: 'left',
+    lineHeight: '1.5',
+    flex: 1,
     fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
 

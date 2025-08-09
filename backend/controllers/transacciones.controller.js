@@ -1,6 +1,5 @@
 const pool = require('../db');
 
-// Obtener todas las transacciones con filtros
 exports.getTransacciones = async (req, res) => {
   try {
     const { 
@@ -32,7 +31,6 @@ exports.getTransacciones = async (req, res) => {
     const params = [];
     let paramCount = 1;
 
-    // Filtros opcionales
     if (cliente_id) {
       query += ` AND t.id_cliente = $${paramCount}`;
       params.push(cliente_id);
@@ -63,14 +61,12 @@ exports.getTransacciones = async (req, res) => {
       paramCount++;
     }
 
-    // Paginación
     const offset = (page - 1) * limit;
     query += ` ORDER BY t.fecha_compra DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
     params.push(limit, offset);
 
     const result = await pool.query(query, params);
 
-    // Obtener total de registros para paginación
     let countQuery = `
       SELECT COUNT(*) as total
       FROM transacciones t
@@ -130,12 +126,10 @@ exports.getTransacciones = async (req, res) => {
   }
 };
 
-// Obtener transacción específica con detalles
 exports.getTransaccionById = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Obtener transacción principal
     const transaccionResult = await pool.query(`
       SELECT 
         t.*,
@@ -156,7 +150,6 @@ exports.getTransaccionById = async (req, res) => {
       return res.status(404).json({ error: 'Transacción no encontrada' });
     }
 
-    // Obtener detalles de la transacción (archivos comprados)
     const detallesResult = await pool.query(`
       SELECT 
         dt.*,
@@ -190,13 +183,11 @@ exports.getTransaccionById = async (req, res) => {
   }
 };
 
-// Obtener transacciones de un cliente específico
 exports.getTransaccionesCliente = async (req, res) => {
   try {
     const { cliente_id } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    // Verificar que existe el cliente
     const clienteExists = await pool.query(
       'SELECT * FROM cliente WHERE id_cliente = $1',
       [cliente_id]
@@ -221,7 +212,6 @@ exports.getTransaccionesCliente = async (req, res) => {
       LIMIT $2 OFFSET $3
     `, [cliente_id, limit, offset]);
 
-    // Obtener total para paginación
     const countResult = await pool.query(
       'SELECT COUNT(*) as total FROM transacciones WHERE id_cliente = $1',
       [cliente_id]
@@ -246,18 +236,15 @@ exports.getTransaccionesCliente = async (req, res) => {
   }
 };
 
-// Actualizar estado de transacción
 exports.updateEstadoTransaccion = async (req, res) => {
   try {
     const { id } = req.params;
     const { id_estado_transaccion, notas } = req.body;
 
-    // Validaciones básicas
     if (!id_estado_transaccion) {
       return res.status(400).json({ error: 'El estado de transacción es requerido' });
     }
 
-    // Verificar que existe la transacción
     const transaccionExists = await pool.query(
       'SELECT * FROM transacciones WHERE id_transacciones = $1',
       [id]
@@ -267,7 +254,6 @@ exports.updateEstadoTransaccion = async (req, res) => {
       return res.status(404).json({ error: 'Transacción no encontrada' });
     }
 
-    // Verificar que existe el estado
     const estadoExists = await pool.query(
       'SELECT * FROM estado_transaccion WHERE id_estado_transaccion = $1',
       [id_estado_transaccion]
@@ -277,7 +263,6 @@ exports.updateEstadoTransaccion = async (req, res) => {
       return res.status(400).json({ error: 'Estado de transacción no válido' });
     }
 
-    // Actualizar estado
     const result = await pool.query(`
       UPDATE transacciones 
       SET id_estado_transaccion = $1
@@ -299,7 +284,6 @@ exports.updateEstadoTransaccion = async (req, res) => {
   }
 };
 
-// Obtener estadísticas de transacciones
 exports.getEstadisticasTransacciones = async (req, res) => {
   try {
     const { fecha_desde, fecha_hasta } = req.query;
@@ -327,7 +311,6 @@ exports.getEstadisticasTransacciones = async (req, res) => {
       whereClause += conditions.join(' AND ');
     }
 
-    // Estadísticas por estado
     const estadoStats = await pool.query(`
       SELECT 
         et.estado,
@@ -340,7 +323,6 @@ exports.getEstadisticasTransacciones = async (req, res) => {
       ORDER BY cantidad DESC
     `, params);
 
-    // Estadísticas por método de pago
     const metodoPagoStats = await pool.query(`
       SELECT 
         mp.nombre as metodo_pago,
@@ -353,7 +335,6 @@ exports.getEstadisticasTransacciones = async (req, res) => {
       ORDER BY cantidad DESC
     `, params);
 
-    // Totales generales
     const totalesResult = await pool.query(`
       SELECT 
         COUNT(*) as total_transacciones,
@@ -379,5 +360,163 @@ exports.getEstadisticasTransacciones = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);
     res.status(500).json({ error: 'Error al obtener estadísticas' });
+  }
+};
+
+exports.createTransaccionPayPal = async (req, res) => {
+  try {
+    const {
+      id_archivo,
+      id_comprador,
+      monto,
+      paypal_transaction_id,
+      paypal_payer_email,
+      paypal_payer_name,
+      estado_transaccion = 'completada'
+    } = req.body;
+
+    if (!id_archivo || !id_comprador || !monto || !paypal_transaction_id) {
+      return res.status(400).json({
+        error: 'Campos requeridos: id_archivo, id_comprador, monto, paypal_transaction_id'
+      });
+    }
+
+    const archivoExists = await pool.query(
+      'SELECT * FROM archivos WHERE id_archivo = $1 AND activo = true',
+      [id_archivo]
+    );
+
+    if (archivoExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Archivo no encontrado o inactivo' });
+    }
+
+    const archivo = archivoExists.rows[0];
+
+    const clienteResult = await pool.query(
+      'SELECT id_cliente FROM cliente WHERE id_usuario = $1',
+      [id_comprador]
+    );
+
+    if (clienteResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario comprador no es un cliente registrado' });
+    }
+
+    const id_cliente = clienteResult.rows[0].id_cliente;
+
+    const existingTransaction = await pool.query(
+      'SELECT * FROM transacciones WHERE referencia_pago = $1',
+      [paypal_transaction_id]
+    );
+
+    if (existingTransaction.rows.length > 0) {
+      return res.status(400).json({
+        error: 'Esta transacción PayPal ya fue registrada'
+      });
+    }
+
+    const paypalMethod = await pool.query(
+      'SELECT * FROM metodos_pago WHERE nombre ILIKE $1',
+      ['%paypal%']
+    );
+
+    let id_metodos_pago = null;
+    if (paypalMethod.rows.length === 0) {
+      const newMethod = await pool.query(
+        'INSERT INTO metodos_pago (nombre, descripcion, activo) VALUES ($1, $2, $3) RETURNING id_metodos_pago',
+        ['PayPal', 'Pago a través de PayPal', true]
+      );
+      id_metodos_pago = newMethod.rows[0].id_metodos_pago;
+    } else {
+      id_metodos_pago = paypalMethod.rows[0].id_metodos_pago;
+    }
+
+    const estadoResult = await pool.query(
+      'SELECT id_estado_transaccion FROM estado_transaccion WHERE estado ILIKE $1',
+      ['completada']
+    );
+
+    let id_estado_transaccion = null;
+    if (estadoResult.rows.length === 0) {
+      const newEstado = await pool.query(
+        'INSERT INTO estado_transaccion (estado, descripcion) VALUES ($1, $2) RETURNING id_estado_transaccion',
+        ['Completada', 'Transacción completada exitosamente']
+      );
+      id_estado_transaccion = newEstado.rows[0].id_estado_transaccion;
+    } else {
+      id_estado_transaccion = estadoResult.rows[0].id_estado_transaccion;
+    }
+
+    const transactionResult = await pool.query(
+      `INSERT INTO transacciones 
+       (id_cliente, id_metodos_pago, id_estado_transaccion, total_pago, fecha_compra, referencia_pago)
+       VALUES ($1, $2, $3, $4, NOW(), $5)
+       RETURNING *`,
+      [id_cliente, id_metodos_pago, id_estado_transaccion, monto, paypal_transaction_id]
+    );
+
+    const nuevaTransaccion = transactionResult.rows[0];
+
+    await pool.query(
+      `INSERT INTO detalle_transaccion 
+       (id_transacciones, id_archivo, precio_unitario)
+       VALUES ($1, $2, $3)`,
+      [
+        nuevaTransaccion.id_transacciones,
+        id_archivo,
+        monto
+      ]
+    );
+
+    
+    res.status(201).json({
+      message: 'Transacción PayPal creada exitosamente',
+      transaccion: nuevaTransaccion
+    });
+
+  } catch (error) {
+    console.error('Error creando transacción PayPal:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor al crear la transacción PayPal'
+    });
+  }
+};
+
+exports.verificarCompraArchivo = async (req, res) => {
+  try {
+    const { userId, archivoId } = req.params;
+
+    const clienteResult = await pool.query(
+      'SELECT id_cliente FROM cliente WHERE id_usuario = $1',
+      [userId]
+    );
+
+    if (clienteResult.rows.length === 0) {
+      return res.json({
+        ha_comprado: false,
+        transaccion: null
+      });
+    }
+
+    const id_cliente = clienteResult.rows[0].id_cliente;
+
+    const result = await pool.query(
+      `SELECT t.*, dt.id_archivo, dt.precio_unitario
+       FROM transacciones t
+       INNER JOIN detalle_transaccion dt ON t.id_transacciones = dt.id_transacciones
+       WHERE t.id_cliente = $1 AND dt.id_archivo = $2`,
+      [id_cliente, archivoId]
+    );
+
+    const haComprado = result.rows.length > 0;
+
+    res.json({
+      ha_comprado: haComprado,
+      transaccion: haComprado ? result.rows[0] : null
+    });
+  } catch (error) {
+    console.error('Error verificando compra:', error);
+    res.status(500).json({
+      error: 'Error al verificar compra'
+    });
   }
 };

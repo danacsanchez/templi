@@ -113,10 +113,22 @@ exports.register = async (req, res) => {
         console.error('Error al enviar correo de bienvenida:', mailError);
       }
 
+      // Crear JWT para el usuario recién registrado
+      const token = jwt.sign(
+        { 
+          userId: user.id_usuario, 
+          rol: user.rol,
+          tipoUsuario: user.id_tipo_usuario
+        },
+        process.env.JWT_SECRET || 'secreto_temporal',
+        { expiresIn: '24h' }
+      );
+
       console.log('Usuario registrado exitosamente:', user.nombre);
       res.status(201).json({ 
         message: 'Usuario registrado exitosamente',
-        user: user
+        user: user,
+        token: token
       });
 
     } catch (error) {

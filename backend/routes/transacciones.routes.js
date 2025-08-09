@@ -8,6 +8,12 @@ router.get('/', transaccionesController.getTransacciones);
 // GET /api/transacciones/estadisticas - Obtener estadísticas
 router.get('/estadisticas', transaccionesController.getEstadisticasTransacciones);
 
+// POST /api/transacciones/paypal - Crear transacción PayPal
+router.post('/paypal', transaccionesController.createTransaccionPayPal);
+
+// GET /api/transacciones/verificar/:userId/:archivoId - Verificar si usuario compró archivo
+router.get('/verificar/:userId/:archivoId', transaccionesController.verificarCompraArchivo);
+
 // GET /api/transacciones/:id - Obtener transacción específica con detalles
 router.get('/:id', transaccionesController.getTransaccionById);
 

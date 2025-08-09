@@ -116,18 +116,11 @@ const Register = ({ onBackToLogin, onRegisterSuccess, onBackToHome }) => {
         // Mostrar mensaje de éxito
         alert('¡Cuenta creada exitosamente!');
         
-        // Formatear datos para handleLoginSuccess
-        const userData = {
-          user: {
-            id_usuario: data.user.id_usuario,
-            nombre: data.user.nombre,
-            email: data.user.email,
-            tipo_usuario: data.user.tipo_usuario // ← Asegurar que coincida con App.js
-          }
-        };
+        console.log('Datos del usuario registrado:', data);
+        console.log('Tipo de usuario:', data.user.id_tipo_usuario);
         
-        // Redirigir al dashboard correspondiente
-        onRegisterSuccess(userData);
+        // Redirigir al dashboard correspondiente - el backend ya devuelve la estructura correcta
+        onRegisterSuccess(data);
       } else {
         console.error('Error del servidor:', data);
         setError(data.message || 'Error al registrar usuario');

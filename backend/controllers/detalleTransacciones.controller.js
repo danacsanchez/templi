@@ -1,5 +1,50 @@
 const pool = require('../db');
 
+// Obtener todos los detalles de transacciones para administradores
+exports.getDetallesTransaccionesAdmin = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(`
+      SELECT 
+        dt.id_detalle_transaccion,
+        dt.id_transacciones,
+        dt.id_archivo,
+        dt.precio_unitario,
+        a.nombre_archivo,
+        a.descripcion as archivo_descripcion,
+        ca.nombre as categoria_nombre,
+        ea.nombre as extension_nombre
+      FROM detalle_transaccion dt
+      JOIN archivos a ON dt.id_archivo = a.id_archivo
+      JOIN categoria_archivo ca ON a.id_categoria_archivo = ca.id_categoria_archivo
+      JOIN extension_archivo ea ON a.id_extension_archivo = ea.id_extension_archivo
+      ORDER BY dt.id_detalle_transaccion DESC
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+
+    // Obtener total para paginación
+    const countResult = await pool.query('SELECT COUNT(*) as total FROM detalle_transaccion');
+    const total = parseInt(countResult.rows[0].total);
+    
+    console.log(`Detalles de transacciones para admin: ${result.rows.length} de ${total} total`);
+    
+    res.json({
+      detalles: result.rows,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener detalles de transacciones para admin:', error);
+    res.status(500).json({ error: 'Error al obtener detalles de transacciones para admin' });
+  }
+};
+
 // Obtener todos los detalles de una transacción específica
 exports.getDetallesTransaccion = async (req, res) => {
   try {

@@ -1,9 +1,24 @@
 import React, { useState } from 'react';
 import ArchivosTable from './ArchivosTable';
+import VendedorAnalytics from './VendedorAnalytics';
 
 const VendedorDashboard = ({ onLogout, user }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
   const [selectedSection, setSelectedSection] = useState('dashboard');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
+    onLogout();
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
+  };
 
   return (
     <div style={styles.container}>
@@ -63,21 +78,6 @@ const VendedorDashboard = ({ onLogout, user }) => {
 
         {/* Navegación de configuración y logout */}
         <div style={styles.bottomMenu}>
-          {/* Configuración */}
-          <div 
-            style={{
-              ...styles.bottomMenuItem,
-              backgroundColor: hoveredItem === 'configuracion' ? '#f5f5f7' : 'transparent',
-              fontWeight: selectedSection === 'configuracion' ? 600 : 400
-            }}
-            onMouseEnter={() => setHoveredItem('configuracion')}
-            onMouseLeave={() => setHoveredItem(null)}
-            onClick={() => setSelectedSection('configuracion')}
-          >
-            <span className="material-symbols-outlined" style={styles.bottomMenuIcon}>settings</span>
-            <span style={styles.bottomMenuText}>Configuración</span>
-          </div>
-
           {/* Cerrar Sesión */}
           <div 
             style={{
@@ -86,7 +86,7 @@ const VendedorDashboard = ({ onLogout, user }) => {
             }}
             onMouseEnter={() => setHoveredItem('logout')}
             onMouseLeave={() => setHoveredItem(null)}
-            onClick={onLogout}
+            onClick={handleLogoutClick}
           >
             <span className="material-symbols-outlined" style={styles.logoutIcon}>logout</span>
             <span style={styles.logoutText}>Cerrar Sesión</span>
@@ -97,15 +97,10 @@ const VendedorDashboard = ({ onLogout, user }) => {
       {/* Contenido principal */}
       <div style={styles.content}>
         {selectedSection === 'dashboard' && (
-          <div style={styles.welcomeCard}>
-            <h1 style={styles.mainText}>¡Bienvenido a tu panel de vendedor!</h1>
-            <p style={styles.subtitle}>
-              ✅ Sistema de autenticación funcionando correctamente
-            </p>
-            <p style={styles.description}>
-              Desde aquí puedes gestionar tus archivos digitales y hacer crecer tu negocio.
-            </p>
-          </div>
+          <VendedorAnalytics 
+            vendedorId={user?.id_vendedor} 
+            vendedorNombre={user?.nombre || 'Vendedor'} 
+          />
         )}
         {selectedSection === 'archivos' && (
           <ArchivosTable vendedorId={user?.id_vendedor} />
@@ -127,6 +122,30 @@ const VendedorDashboard = ({ onLogout, user }) => {
           </div>
         )}
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h3 style={styles.modalTitle}>Confirmar cierre de sesión</h3>
+            <p style={styles.modalMessage}>¿Estás seguro que quieres cerrar sesión?</p>
+            <div style={styles.modalButtons}>
+              <button
+                style={styles.modalCancelButton}
+                onClick={handleCancelLogout}
+              >
+                Cancelar
+              </button>
+              <button
+                style={styles.modalConfirmButton}
+                onClick={handleConfirmLogout}
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -316,6 +335,78 @@ const styles = {
     fontSize: '10.5px',
     fontWeight: '400',
     color: '#dc3545',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  // Modal styles
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000
+  },
+
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    padding: '24px',
+    maxWidth: '400px',
+    width: '90%',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  modalTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+    margin: '0 0 12px 0',
+    textAlign: 'center'
+  },
+
+  modalMessage: {
+    fontSize: '13px',
+    color: '#86868b',
+    margin: '0 0 20px 0',
+    textAlign: 'center',
+    lineHeight: '1.4'
+  },
+
+  modalButtons: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'center'
+  },
+
+  modalCancelButton: {
+    padding: '8px 18px',
+    backgroundColor: '#f5f5f7',
+    color: '#1d1d1f',
+    border: 'none',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  modalConfirmButton: {
+    padding: '8px 18px',
+    backgroundColor: '#dc3545',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
     fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   }
 };

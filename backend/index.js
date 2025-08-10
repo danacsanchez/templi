@@ -54,6 +54,10 @@ app.use('/api/tipo-usuarios', tipoUsuariosRoutes);
 const usuariosRoutes = require('./routes/usuarios.routes');
 app.use('/api/usuarios', usuariosRoutes);
 
+// Rutas de estadísticas
+const statsRoutes = require('./routes/stats.routes');
+app.use('/api/stats', statsRoutes);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
@@ -131,4 +135,6 @@ app.listen(PORT, () => {
   console.log('   PUT    /api/usuarios/:id/rol (requiere SuperAdmin)');
   console.log('   PUT    /api/usuarios/:id/estado (requiere Admin)');
   console.log('   DELETE /api/usuarios/:id (requiere SuperAdmin)');
+  console.log('* Rutas de estadísticas disponibles:');
+  console.log('   GET    /api/stats/dashboard (sin autenticación)');
 });

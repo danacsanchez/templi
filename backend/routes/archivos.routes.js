@@ -6,15 +6,18 @@ const archivosController = require('../controllers/archivos.controller');
 // GET /api/archivos - Obtener archivos públicos con filtros
 router.get('/', archivosController.getArchivos);
 
+// Rutas específicas deben ir ANTES que las rutas con parámetros
+// GET /api/archivos/admin - Obtener todos los archivos para administradores
+router.get('/admin', archivosController.getArchivosAdmin);
+
+// GET /api/archivos/vendedor/mis-archivos - Archivos del vendedor
+router.get('/vendedor/mis-archivos', archivosController.getMisArchivos);
+
 // GET /api/archivos/vendedor/:vendedorId - Obtener archivos de un vendedor específico
 router.get('/vendedor/:vendedorId', archivosController.getArchivosByVendedor);
 
-// GET /api/archivos/:id - Obtener archivo específico con imágenes
+// GET /api/archivos/:id - Obtener archivo específico con imágenes (DEBE IR AL FINAL)
 router.get('/:id', archivosController.getArchivoById);
-
-// Rutas para vendedores (TODO: agregar middleware de autenticación)
-// GET /api/archivos/vendedor/mis-archivos - Archivos del vendedor
-router.get('/vendedor/mis-archivos', archivosController.getMisArchivos);
 
 // POST /api/archivos - Crear nuevo archivo
 router.post('/', archivosController.uploadMiddleware, archivosController.createArchivo);

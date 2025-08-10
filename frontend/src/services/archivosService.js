@@ -30,6 +30,42 @@ export const getArchivos = async () => {
 };
 
 /**
+ * Obtener todos los archivos para administradores (incluye activos e inactivos)
+ */
+export const getArchivosAdmin = async (filters = {}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    // Agregar filtros si existen
+    Object.keys(filters).forEach(key => {
+      if (filters[key] && filters[key].trim() !== '') {
+        queryParams.append(key, filters[key].trim());
+      }
+    });
+
+    const url = `${API_URL}/api/archivos/admin${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error obteniendo archivos para admin:', error);
+    throw error;
+  }
+};
+
+/**
  * Obtener archivos de un vendedor específico (para dashboard del vendedor)
  */
 export const getArchivosByVendedor = async (vendedorId) => {

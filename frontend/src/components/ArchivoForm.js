@@ -827,10 +827,6 @@ const flexRowStyle = {
   gap: '16px'
 };
 
-const halfWidthStyle = {
-  flex: 1
-};
-
 const thirdWidthStyle = {
   flex: 1
 };
@@ -860,14 +856,6 @@ const errorTextStyle = {
   fontSize: '10px',
   color: '#ff3b30',
   marginTop: '4px',
-  fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-};
-
-const placeholderTextStyle = {
-  fontSize: '12px',
-  color: '#86868b',
-  textAlign: 'center',
-  padding: '40px 20px',
   fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 };
 

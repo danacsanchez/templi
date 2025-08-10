@@ -1,7 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { updateUsuario } from '../services/usuariosService';
 
 const UserProfile = ({ user, onLogout, onBackToHome }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [localUser, setLocalUser] = useState(user);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formNombre, setFormNombre] = useState(user?.nombre || '');
+  const [formEmail, setFormEmail] = useState(user?.email || '');
+
+  useEffect(() => {
+    setLocalUser(user);
+    setFormNombre(user?.nombre || '');
+    setFormEmail(user?.email || '');
+  }, [user]);
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -14,6 +26,39 @@ const UserProfile = ({ user, onLogout, onBackToHome }) => {
 
   const handleCancelLogout = () => {
     setShowLogoutModal(false);
+  };
+
+  const handleToggleEdit = () => {
+    if (isEditing) {
+      // cancel edits -> reset
+      setFormNombre(localUser?.nombre || '');
+      setFormEmail(localUser?.email || '');
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
+  const isDirty = (formNombre !== (localUser?.nombre || '')) || (formEmail !== (localUser?.email || ''));
+  const isEmailValid = formEmail.trim() === '' ? false : emailRegex.test(formEmail.trim());
+  const canSave = isEditing && !saving && isDirty && formNombre.trim().length > 0 && isEmailValid;
+
+  const handleSave = async () => {
+    if (!localUser?.id_usuario) return;
+    if (!canSave) return;
+    try {
+      setSaving(true);
+      await updateUsuario(localUser.id_usuario, {
+        nombre: formNombre,
+        email: formEmail
+      });
+      setLocalUser(prev => ({ ...prev, nombre: formNombre, email: formEmail }));
+      setIsEditing(false);
+    } catch (e) {
+      console.error('Error al actualizar usuario:', e);
+      // opcional: mostrar feedback visual
+    } finally {
+      setSaving(false);
+    }
   };
   return (
     <div style={styles.container}>
@@ -40,7 +85,7 @@ const UserProfile = ({ user, onLogout, onBackToHome }) => {
             style={styles.userGreetingDisabled}
             disabled
           >
-            <span style={styles.greetingTextDisabled}>Hola, {user.nombre}</span>
+            <span style={styles.greetingTextDisabled}>Hola, {localUser?.nombre}</span>
           </button>
         </div>
       </header>
@@ -60,7 +105,7 @@ const UserProfile = ({ user, onLogout, onBackToHome }) => {
 
         {/* Profile Header */}
         <div style={styles.profileHeader}>
-          <h1 style={styles.welcomeTitle}>Bienvenido a tu perfil, {user.nombre}</h1>
+          <h1 style={styles.welcomeTitle}>Bienvenido a tu perfil, {localUser?.nombre}</h1>
           <div style={styles.wavyLine}>
             <svg width="120" height="8" viewBox="0 0 120 8" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path 
@@ -76,9 +121,69 @@ const UserProfile = ({ user, onLogout, onBackToHome }) => {
           </p>
         </div>
 
-        {/* User Info */}
-        <div style={styles.userInfo}>
-          <p style={styles.userEmail}>{user.email}</p>
+        {/* Account Details Editable */}
+        <div style={styles.accountSection}>
+          <div style={styles.accountHeader}>
+            <h2 style={styles.accountTitle}>Detalles de la cuenta</h2>
+            <div style={styles.accountActions}>
+              {!isEditing && (
+                <button onClick={handleToggleEdit} style={styles.editButton}>Editar</button>
+              )}
+        {isEditing && (
+                <>
+                  <button onClick={handleToggleEdit} style={styles.cancelInlineButton}>Cancelar</button>
+          <button onClick={handleSave} style={{...styles.saveButton, opacity: canSave ? 1 : 0.6, cursor: canSave ? 'pointer' : 'not-allowed'}} disabled={!canSave}>
+                    {saving ? 'Guardando…' : 'Guardar'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div style={styles.accountCard}>
+            <div style={styles.fieldRow}>
+              <div style={styles.fieldLabel}>
+                <span className="material-symbols-outlined" style={styles.fieldIcon}>person</span>
+              </div>
+        <div style={styles.fieldValue}>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={formNombre}
+                    onChange={(e) => setFormNombre(e.target.value)}
+                    style={styles.input}
+                    placeholder="Tu nombre"
+                  />
+                ) : (
+          <span style={styles.fieldText}>{localUser?.nombre || '-'}</span>
+                )}
+              </div>
+            </div>
+            <div style={styles.fieldRow}>
+              <div style={styles.fieldLabel}>
+                <span className="material-symbols-outlined" style={styles.fieldIcon}>mail</span>
+              </div>
+              <div style={styles.fieldValue}>
+                {isEditing ? (
+                  <div style={{display:'flex', flexDirection:'column', alignItems:'flex-start', width:'100%', maxWidth:'320px'}}>
+                    <input
+                      type="email"
+                      value={formEmail}
+                      onChange={(e) => setFormEmail(e.target.value)}
+                      style={styles.input}
+                      placeholder="tu@correo.com"
+                    />
+                    {!isEmailValid && (
+                      <span style={{fontSize:'11px', color:'#d32f2f', marginTop:'6px'}}>Ingresa un correo válido</span>
+                    )}
+                  </div>
+                ) : (
+          <span style={styles.fieldText}>{localUser?.email || '-'}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <p style={styles.userStatus}>
             <span className="material-symbols-outlined" style={styles.statusIcon}>
               asterisk
@@ -301,26 +406,121 @@ const styles = {
   },
 
   // User Info
-  userInfo: {
+  accountSection: {
     marginBottom: '40px',
     textAlign: 'left',
   },
 
-  userEmail: {
+  accountHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '12px',
+  },
+
+  accountTitle: {
+    margin: 0,
     fontSize: '14px',
+    fontWeight: 600,
     color: '#1d1d1f',
-    margin: '0 0 4px 0',
-    fontWeight: '400',
+  },
+
+  accountActions: {
+    display: 'flex',
+    gap: '8px',
+  },
+
+  editButton: {
+    backgroundColor: '#ffffff',
+    color: '#1d1d1f',
+    border: '1px solid #d1d1d6',
+    borderRadius: '9999px',
+    padding: '6px 12px',
+    fontSize: '12px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+
+  cancelInlineButton: {
+    backgroundColor: '#ffffff',
+    color: '#1d1d1f',
+    border: '1px solid #d1d1d6',
+    borderRadius: '9999px',
+    padding: '6px 12px',
+    fontSize: '12px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+
+  saveButton: {
+    backgroundColor: '#1d1d1f',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '9999px',
+    padding: '6px 14px',
+    fontSize: '12px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+
+  accountCard: {
+    backgroundColor: 'transparent',
+    border: '1px solid #d1d1d6',
+    borderRadius: '12px',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+  gap: '6px',
+    marginBottom: '16px',
+  },
+
+  fieldRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: '6px',
+  },
+
+  fieldLabel: {
+    fontSize: '12px',
+    color: '#86868b',
+    minWidth: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+  },
+
+  fieldText: {
+    fontSize: '12px',
+    color: '#1d1d1f',
+    lineHeight: 1.2,
+  },
+
+  fieldValue: {
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+  },
+
+  fieldIcon: {
+    fontSize: '16px',
+    color: '#86868b',
+    lineHeight: 1,
+  },
+
+  input: {
+    width: '100%',
+    maxWidth: '320px',
+    border: '1px solid #d1d1d6',
+    borderRadius: '8px',
+    padding: '8px 12px',
+    fontSize: '13px',
+    outline: 'none',
   },
 
   userStatus: {
-    fontSize: '14px',
+    fontSize: '12px',
     color: '#1d1d1f',
-    margin: 0,
-    fontWeight: '400',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
   },
 
   statusIcon: {
@@ -346,7 +546,7 @@ const styles = {
     backgroundColor: '#1d1d1f',
     color: '#ffffff',
     border: 'none',
-    borderRadius: '12px',
+  borderRadius: '9999px',
     padding: '8px 20px',
     fontSize: '12px',
     fontWeight: '500',
@@ -410,15 +610,16 @@ const styles = {
 
   goodbyeMessage: {
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  flexDirection: 'column',
     marginBottom: '20px',
   },
 
   wavingIcon: {
-    fontSize: '24px',
-    color: '#1d1d1f',
+  fontSize: '36px',
+  color: '#F4E391',
   },
 
   goodbyeText: {
@@ -445,7 +646,7 @@ const styles = {
     backgroundColor: '#ffffff',
     color: '#1d1d1f',
     border: '1px solid #d1d1d6',
-    borderRadius: '12px',
+  borderRadius: '9999px',
     padding: '10px 20px',
     fontSize: '13px',
     fontWeight: '500',
@@ -457,7 +658,7 @@ const styles = {
     backgroundColor: '#1d1d1f',
     color: '#ffffff',
     border: 'none',
-    borderRadius: '12px',
+  borderRadius: '9999px',
     padding: '10px 20px',
     fontSize: '13px',
     fontWeight: '500',

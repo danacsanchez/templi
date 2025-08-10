@@ -29,9 +29,9 @@ const Login = ({ onLoginSuccess, onBackToHome, onRegisterClick }) => { // ← Ag
       // Guardar token
       authService.setToken(response.data.token);
       
-      // Mostrar éxito
-      const userName = response.data.user.nombre;
-      const userRole = response.data.user.tipo || response.data.user.rol;
+      // Mostrar éxito (variables comentadas porque no se usan)
+      // const userName = response.data.user.nombre;
+      // const userRole = response.data.user.tipo || response.data.user.rol;
       
       // alert(`¡Bienvenido ${userName}! (Rol: ${userRole})`);
       

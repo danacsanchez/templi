@@ -9,7 +9,7 @@ const PayPalCheckout = ({ archivo, user, onClose, onSuccess }) => {
   
   const PAYPAL_CLIENT_ID = "test";
   
-  const isProduction = PAYPAL_CLIENT_ID !== "test";
+  // const isProduction = PAYPAL_CLIENT_ID !== "test"; // Variable comentada porque no se usa
   const isSandbox = true;
   
   const initialOptions = {
@@ -149,19 +149,6 @@ const PayPalCheckout = ({ archivo, user, onClose, onSuccess }) => {
         )}
 
         <div style={paypalContainerStyle}>
-          {isSandbox && (
-            <div style={sandboxModeWarningStyle}>
-              <span className="material-symbols-outlined" style={warningIconStyle}>science</span>
-              <span>Modo Sandbox - Simulación de pagos (sin cobros reales)</span>
-            </div>
-          )}
-          {!isSandbox && (
-            <div style={prodModeWarningStyle}>
-              <span className="material-symbols-outlined" style={prodIconStyle}>verified</span>
-              <span>Modo producción - Cobros reales activados</span>
-            </div>
-          )}
-          
           <PayPalScriptProvider options={initialOptions}>
             <PayPalButtons
               style={{
@@ -339,52 +326,19 @@ const paypalContainerStyle = {
   padding: '0 24px 24px 24px'
 };
 
-const sandboxModeWarningStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 12px',
-  backgroundColor: '#e1f5fe',
-  color: '#01579b',
-  fontSize: '11px',
-  marginBottom: '16px',
-  borderRadius: '6px',
-  border: '1px solid #81d4fa'
-};
-
-const devModeWarningStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 12px',
-  backgroundColor: '#fff3cd',
-  color: '#856404',
-  fontSize: '11px',
-  marginBottom: '16px',
-  borderRadius: '6px',
-  border: '1px solid #ffeaa7'
-};
-
-const prodModeWarningStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 12px',
-  backgroundColor: '#d1ecf1',
-  color: '#0c5460',
-  fontSize: '11px',
-  marginBottom: '16px',
-  borderRadius: '6px',
-  border: '1px solid #bee5eb'
-};
-
-const warningIconStyle = {
-  fontSize: '14px'
-};
-
-const prodIconStyle = {
-  fontSize: '14px'
-};
+// Estilo comentado porque no se usa
+// const devModeWarningStyle = {
+//   display: 'flex',
+//   alignItems: 'center',
+//   gap: '8px',
+//   padding: '8px 12px',
+//   backgroundColor: '#fff3cd',
+//   color: '#856404',
+//   fontSize: '11px',
+//   marginBottom: '16px',
+//   borderRadius: '6px',
+//   border: '1px solid #ffeaa7'
+// };
 
 const footerStyle = {
   padding: '16px 24px 24px 24px',

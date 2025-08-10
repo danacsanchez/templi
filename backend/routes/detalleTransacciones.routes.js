@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const detalleTransaccionesController = require('../controllers/detalleTransacciones.controller');
 
+// GET /api/detalle-transacciones/admin - Obtener todos los detalles para admin
+router.get('/admin', detalleTransaccionesController.getDetallesTransaccionesAdmin);
+
 // GET /api/detalle-transacciones/transaccion/:transaccion_id - Obtener detalles de una transacción
 router.get('/transaccion/:transaccion_id', detalleTransaccionesController.getDetallesTransaccion);
 

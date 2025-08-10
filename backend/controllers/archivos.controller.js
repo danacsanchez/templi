@@ -99,6 +99,77 @@ exports.getArchivos = async (req, res) => {
   }
 };
 
+// Obtener todos los archivos para administradores (incluye activos e inactivos)
+exports.getArchivosAdmin = async (req, res) => {
+  try {
+    const { categoria, extension, precio_min, precio_max, search } = req.query;
+    
+    let query = `
+      SELECT 
+        a.*,
+        v.id_usuario as vendedor_usuario_id,
+        u.nombre as vendedor_nombre,
+        ca.nombre as categoria_nombre,
+        ea.nombre as extension_nombre,
+        (SELECT url_imagen 
+         FROM imagenes_archivo ia 
+         WHERE ia.id_archivo = a.id_archivo 
+           AND ia.es_portada = true 
+         LIMIT 1) as imagen_portada
+      FROM archivos a
+      JOIN vendedor v ON a.id_vendedor = v.id_vendedor
+      JOIN usuarios u ON v.id_usuario = u.id_usuario
+      JOIN categoria_archivo ca ON a.id_categoria_archivo = ca.id_categoria_archivo
+      JOIN extension_archivo ea ON a.id_extension_archivo = ea.id_extension_archivo
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 1;
+
+    // Filtros opcionales
+    if (categoria) {
+      query += ` AND a.id_categoria_archivo = $${paramCount}`;
+      params.push(categoria);
+      paramCount++;
+    }
+
+    if (extension) {
+      query += ` AND a.id_extension_archivo = $${paramCount}`;
+      params.push(extension);
+      paramCount++;
+    }
+
+    if (precio_min) {
+      query += ` AND a.precio >= $${paramCount}`;
+      params.push(precio_min);
+      paramCount++;
+    }
+
+    if (precio_max) {
+      query += ` AND a.precio <= $${paramCount}`;
+      params.push(precio_max);
+      paramCount++;
+    }
+
+    if (search) {
+      query += ` AND (LOWER(a.nombre_archivo) LIKE LOWER($${paramCount}) OR LOWER(a.descripcion) LIKE LOWER($${paramCount}))`;
+      params.push(`%${search}%`);
+      paramCount++;
+    }
+
+    query += ` ORDER BY a.fecha_subida DESC`;
+
+    const result = await pool.query(query, params);
+    
+    console.log(`Archivos para admin obtenidos: ${result.rows.length}`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener archivos para admin:', error);
+    res.status(500).json({ error: 'Error al obtener archivos para admin' });
+  }
+};
+
 // Obtener archivos de un vendedor específico (para dashboard del vendedor)
 exports.getArchivosByVendedor = async (req, res) => {
   try {

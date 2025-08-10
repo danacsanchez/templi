@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ArchivoForm from './ArchivoForm';
-import { getArchivos, getArchivosByVendedor, deleteArchivo, toggleArchivoActivo } from '../services/archivosService';
+import { getArchivos, getArchivosByVendedor, toggleArchivoActivo } from '../services/archivosService';
 import { getCategoriasArchivo } from '../services/categoriaArchivoService';
 import { getExtensionesArchivo } from '../services/extensionArchivoService';
 

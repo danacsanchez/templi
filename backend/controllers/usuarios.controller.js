@@ -161,6 +161,7 @@ exports.updatePerfil = async (req, res) => {
     const userId = req.user.id_usuario;
     const {
       nombre,
+      email,
       fecha_nacimiento,
       id_genero_usuario
     } = req.body;
@@ -168,6 +169,26 @@ exports.updatePerfil = async (req, res) => {
     // Validaciones básicas
     if (!nombre || nombre.trim() === '') {
       return res.status(400).json({ error: 'El nombre es requerido' });
+    }
+
+    // Validar email si viene en la carga
+    let normalizedEmail = null;
+    if (email !== undefined) {
+      normalizedEmail = String(email).trim().toLowerCase();
+      // Validación simple de formato
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (normalizedEmail && !emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({ error: 'Formato de email inválido' });
+      }
+      if (normalizedEmail) {
+        const exists = await pool.query(
+          'SELECT 1 FROM usuarios WHERE LOWER(email) = $1 AND id_usuario <> $2',
+          [normalizedEmail, userId]
+        );
+        if (exists.rows.length > 0) {
+          return res.status(400).json({ error: 'El email ya está registrado' });
+        }
+      }
     }
 
     // Construir query dinámico
@@ -203,6 +224,15 @@ exports.updatePerfil = async (req, res) => {
       paramCount++;
     }
 
+    if (email !== undefined) {
+      // Permitir limpiar email enviando vacío? Mantendremos valor si es cadena vacía.
+      if (normalizedEmail !== null) {
+        updateFields.push(`email = $${paramCount}`);
+        values.push(normalizedEmail || null);
+        paramCount++;
+      }
+    }
+
     if (updateFields.length === 0) {
       return res.status(400).json({ error: 'No hay campos para actualizar' });
     }
@@ -235,6 +265,7 @@ exports.updateUsuario = async (req, res) => {
     const { id } = req.params;
     const {
       nombre,
+  email,
       fecha_nacimiento,
       id_genero_usuario
     } = req.body;
@@ -247,6 +278,25 @@ exports.updateUsuario = async (req, res) => {
 
     if (exists.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Validación de email si viene en la carga
+    let normalizedEmail = null;
+    if (email !== undefined) {
+      normalizedEmail = String(email).trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (normalizedEmail && !emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({ error: 'Formato de email inválido' });
+      }
+      if (normalizedEmail) {
+        const emailExists = await pool.query(
+          'SELECT 1 FROM usuarios WHERE LOWER(email) = $1 AND id_usuario <> $2',
+          [normalizedEmail, id]
+        );
+        if (emailExists.rows.length > 0) {
+          return res.status(400).json({ error: 'El email ya está registrado' });
+        }
+      }
     }
 
     // Construir query dinámico
@@ -279,6 +329,14 @@ exports.updateUsuario = async (req, res) => {
       updateFields.push(`id_genero_usuario = $${paramCount}`);
       values.push(id_genero_usuario);
       paramCount++;
+    }
+
+    if (email !== undefined) {
+      if (normalizedEmail !== null) {
+        updateFields.push(`email = $${paramCount}`);
+        values.push(normalizedEmail || null);
+        paramCount++;
+      }
     }
 
     if (updateFields.length === 0) {

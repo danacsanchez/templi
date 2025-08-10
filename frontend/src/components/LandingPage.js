@@ -4,6 +4,28 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick, onMarketpla
   const [isHovered, setIsHovered] = useState(false);
   const [isLoginHovered, setIsLoginHovered] = useState(false);
   const [hoveredCard, setHoveredCard] = useState(null);
+  // Primer ítem abierto por defecto para coincidir con el diseño
+  const [openFaq, setOpenFaq] = useState(0);
+
+  // Función para scroll suave a las secciones
+  const handleScrollToSection = (e) => {
+    e.preventDefault();
+    const targetId = e.target.getAttribute('href').substring(1);
+    const targetElement = document.getElementById(targetId);
+    
+    if (targetElement) {
+      const offsetTop = targetElement.offsetTop - 80; // Ajuste para el header fijo
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Función para manejar FAQ dropdowns
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   return (
     <div style={styles.container}>
@@ -21,8 +43,9 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick, onMarketpla
         <div style={styles.navContainer}>
           {/* Navigation Links */}
           <nav style={styles.nav}>
-            <a href="#features" style={styles.navLink}>Características</a>
-            <a href="#about" style={styles.navLink}>Acerca de</a>
+            <a href="#features" style={styles.navLink} onClick={handleScrollToSection}>Características</a>
+            <a href="#about" style={styles.navLink} onClick={handleScrollToSection}>Acerca de</a>
+            <a href="#faq" style={styles.navLink} onClick={handleScrollToSection}>FAQ</a>
           </nav>
           
           {/* Login Button o Botón de Perfil */}
@@ -118,7 +141,7 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick, onMarketpla
       </section>
 
       {/* Características Section */}
-      <section style={styles.caracteristicasSection}>
+      <section id="features" style={styles.caracteristicasSection}>
         <div style={styles.caracteristicasContainer}>
           {/* Left Side - Main Content */}
           <div style={styles.leftContent}>
@@ -246,6 +269,67 @@ const LandingPage = ({ onLoginClick, user, onLogout, onProfileClick, onMarketpla
                 style={styles.aboutImage}
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" style={styles.faqSection}>
+        <div style={styles.faqContainer}>
+          {/* Left Side - Header */}
+          <div style={styles.faqLeftContent}>
+            <p style={styles.faqCategoryLabel}>• PREGUNTAS FRECUENTES</p>
+            <h2 style={styles.faqSectionTitle}>
+              Resolvemos tus preguntas <span style={styles.faqPinkAccent}>más comunes</span>
+            </h2>
+            <p style={styles.faqDescription}>
+              En esta sección reunimos las respuestas a las preguntas más comunes que recibimos sobre Templi, desde cómo funciona la plataforma hasta el futuro de las funciones para creadores. Nuestra meta es que tengas toda la información a mano, pero si tu duda no aparece aquí, no dudes en escribirnos.
+            </p>
+          </div>
+
+          {/* Right Side - FAQ Items */}
+          <div style={styles.faqRightContent}>
+            {[
+              {
+                question: "¿Es seguro comprar en Templi?",
+                answer: "Sí, tu seguridad es muy importante para nosotros. Usamos métodos de pago confiables como PayPal y protegemos tu información para que puedas comprar con tranquilidad."
+              },
+              {
+                question: "¿Qué pasa si tengo problemas con una descarga?",
+                answer: "No te preocupes, solo contáctanos y revisaremos tu caso. Si el archivo presenta algún problema, te ayudaremos a solucionarlo o te enviaremos una nueva descarga."
+              },
+              {
+                question: "¿Puedo publicar mis propios archivos?",
+                answer: "¡Claro! Crea una cuenta como vendedor y sube tus creaciones. Por ahora, los fondos van a Templi, pero estamos trabajando para que pronto puedas recibir ganancias por tus ventas."
+              },
+              {
+                question: "¿Necesito crear una cuenta para comprar?",
+                answer: "Sí, necesitas una cuenta para realizar compras y acceder a tus descargas. El registro es rápido, gratuito y te permite guardar un historial de todas tus compras."
+              }
+            ].map((faq, index) => (
+              <div key={index} style={styles.faqDropdownItem}>
+                <button 
+                  onClick={() => toggleFaq(index)}
+                  style={styles.faqDropdownButton}
+                >
+                  <span style={styles.faqDropdownQuestion}>{faq.question}</span>
+                  <span 
+                    style={{
+                      ...styles.faqToggleCircle,
+                      backgroundColor: '#000',
+                      color: '#fff'
+                    }}
+                  >
+                    {openFaq === index ? '−' : '+'}
+                  </span>
+                </button>
+                {openFaq === index && (
+                  <div style={styles.faqDropdownAnswer}>
+                    <p style={styles.faqAnswerText}>{faq.answer}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -693,6 +777,132 @@ const styles = {
     color: '#000000ff' // Mismo color que el magic icon
   },
 
+  // FAQ Section
+  faqSection: {
+    padding: '100px 80px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+  },
+
+  faqContainer: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '60px',
+    alignItems: 'flex-start',
+  },
+
+  // Left Side - Header and Description
+  faqLeftContent: {
+    textAlign: 'left',
+  },
+
+  faqCategoryLabel: {
+    fontSize: '12px',
+    color: '#86868b',
+    fontWeight: '500',
+    margin: '0 0 8px 0',
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase',
+  },
+
+  faqSectionTitle: {
+    fontSize: '32px',
+    fontWeight: '600',
+    lineHeight: '1.2',
+    margin: '0 0 24px 0',
+    color: '#1d1d1f',
+    letterSpacing: '-1px',
+  },
+
+  // Solo acento rosa en "más comunes"
+  faqPinkAccent: {
+    color: '#ff4fc3'
+  },
+
+  faqDescription: {
+    fontSize: '16px',
+    color: '#86868b',
+    lineHeight: '1.5',
+    margin: '0',
+    fontWeight: '400',
+  },
+
+  // Right Side - FAQ Dropdowns
+  faqRightContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+
+  faqDropdownItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+    overflow: 'hidden',
+    transition: 'all 0.2s ease',
+  },
+
+  faqDropdownButton: {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '20px 24px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    textAlign: 'left',
+  transition: 'background-color 0.2s ease',
+  fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+
+  faqDropdownQuestion: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+    lineHeight: '1.3',
+    flex: 1,
+  margin: 0,
+  fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+
+  faqDropdownIcon: {
+    fontSize: '20px',
+    color: '#86868b',
+    transition: 'transform 0.2s ease',
+    marginLeft: '16px',
+  },
+
+  // Toggle circular negro con símbolo blanco
+  faqToggleCircle: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    fontSize: '16px',
+    fontWeight: '700',
+    lineHeight: 1,
+    marginLeft: '16px',
+  },
+
+  faqDropdownAnswer: {
+    padding: '0 24px 20px 24px',
+    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+  },
+
+  faqAnswerText: {
+    fontSize: '14px',
+    color: '#86868b',
+    lineHeight: '1.5',
+    margin: '16px 0 0 0',
+  fontWeight: '400',
+  textAlign: 'left',
+  fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+
   // Responsive
   '@media (max-width: 768px)': {
     header: {
@@ -823,6 +1033,48 @@ const styles = {
 
     aboutImage: {
       maxWidth: '80%',
+    },
+
+    // Responsive para FAQ
+    faqSection: {
+      padding: '60px 32px',
+    },
+
+    faqContainer: {
+      gridTemplateColumns: '1fr',
+      gap: '40px',
+    },
+
+    faqSectionTitle: {
+      fontSize: '28px',
+      margin: '0 0 16px 0',
+    },
+
+    faqDescription: {
+      fontSize: '15px',
+      margin: '0 0 0 0',
+    },
+
+    faqDropdownButton: {
+      padding: '16px 20px',
+    },
+
+    faqDropdownQuestion: {
+      fontSize: '15px',
+    },
+
+    faqDropdownIcon: {
+      fontSize: '18px',
+      marginLeft: '12px',
+    },
+
+    faqDropdownAnswer: {
+      padding: '0 20px 16px 20px',
+    },
+
+    faqAnswerText: {
+      fontSize: '13px',
+      margin: '12px 0 0 0',
     },
 
     // Responsive para tablet

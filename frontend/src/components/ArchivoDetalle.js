@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getArchivoById, descargarArchivo } from '../services/archivosService';
+import { getArchivoById } from '../services/archivosService';
 import { getImagenesArchivoByFileId } from '../services/imagenesArchivoService';
-import { getUsuarioById } from '../services/usuariosService';
 import { getCategoriasArchivo } from '../services/categoriaArchivoService';
 import { getExtensionesArchivo } from '../services/extensionArchivoService';
 import PayPalCheckout from './PayPalCheckout';
@@ -9,20 +8,16 @@ import PayPalCheckout from './PayPalCheckout';
 const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, onLoginClick }) => {
   const [archivo, setArchivo] = useState(null);
   const [imagenes, setImagenes] = useState([]);
-  const [vendedor, setVendedor] = useState(null);
   const [categoria, setCategoria] = useState(null);
   const [extension, setExtension] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [isLoginHovered, setIsLoginHovered] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   
   // Estados para PayPal checkout
   const [showCheckout, setShowCheckout] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [transactionDetails, setTransactionDetails] = useState(null);
 
   useEffect(() => {
     const loadArchivoDetalle = async () => {
@@ -35,12 +30,7 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
         setArchivo(archivoData);
 
         // Los datos del vendedor ya vienen en la respuesta del archivo
-        if (archivoData.vendedor_nombre) {
-          setVendedor({
-            nombre: archivoData.vendedor_nombre,
-            apellido: '' // El backend solo devuelve el nombre completo en vendedor_nombre
-          });
-        }
+        // Se usan directamente desde archivoData.vendedor_nombre
 
         // Cargar datos relacionados en paralelo
         const [imagenesData, categoriasData, extensionesData] = await Promise.all([
@@ -109,8 +99,6 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
 
   const handlePaymentSuccess = (details) => {
     console.log('Pago completado exitosamente:', details);
-    setTransactionDetails(details);
-    setPaymentSuccess(true);
     setShowCheckout(false);
     
     // Mostrar mensaje de éxito
@@ -368,32 +356,14 @@ const ArchivoDetalle = ({ archivoId, onBackToMarketplace, user, onProfileClick, 
 
             {/* Purchase Section */}
             <div style={styles.purchaseSection}>
-              <button 
-                onClick={handlePayPalPayment}
-                style={styles.paypalButton}
-                disabled={!user}
-              >
-                <span style={styles.paypalIcon}>💳</span>
-                Comprar con PayPal
-              </button>
-              
               <div style={styles.downloadContainer}>
                 <button 
                   onClick={handleDownload}
-                  style={{
-                    ...styles.buyButton,
-                    ...(isDownloading ? styles.buyButtonDisabled : {})
-                  }}
-                  disabled={!user || isDownloading}
+                  style={styles.buyButton}
+                  disabled={!user}
                 >
                   <span className="material-symbols-outlined" style={styles.buyIcon}>shopping_cart</span>
                   Comprar con PayPal
-                </button>
-                
-                <button style={styles.favoriteButton}>
-                  <span className="material-symbols-outlined" style={styles.favoriteIcon}>
-                    favorite
-                  </span>
                 </button>
               </div>
               
@@ -823,66 +793,13 @@ const styles = {
     marginBottom: '32px',
   },
 
-  paypalButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '12px',
-    width: '100%',
-    padding: '16px 24px',
-    backgroundColor: '#0070ba',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
-    marginBottom: '12px',
-    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-
-  paypalIcon: {
-    fontSize: '20px',
-  },
-
-  downloadButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '12px',
-    width: '100%',
-    padding: '16px 24px',
-    backgroundColor: '#34c759',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    marginBottom: '12px',
-    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-
-  downloadButtonDisabled: {
-    backgroundColor: '#86868b',
-    cursor: 'not-allowed',
-  },
-
-  downloadIcon: {
-    fontSize: '20px',
-  },
-
   downloadContainer: {
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'center',
+    width: '100%',
     marginBottom: '12px',
   },
 
   buyButton: {
-    flex: 1,
+    width: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -906,24 +823,6 @@ const styles = {
   buyIcon: {
     fontSize: '18px',
     marginRight: '8px',
-  },
-
-  favoriteButton: {
-    width: '52px',
-    height: '52px',
-    backgroundColor: '#f5f5f7',
-    border: 'none',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
-  },
-
-  favoriteIcon: {
-    fontSize: '24px',
-    color: '#86868b',
   },
 
   loginPrompt: {

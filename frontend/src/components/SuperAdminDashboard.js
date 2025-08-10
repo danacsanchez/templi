@@ -4,6 +4,10 @@ import ExtensionesArchivoTable from './ExtensionesArchivoTable';
 import GeneroUsuarioTable from './GeneroUsuarioTable';
 import MetodosPagoTable from './MetodosPagoTable';
 import UsuariosTable from './UsuariosTable';
+import ArchivosTableAdmin from './ArchivosTableAdmin';
+import TransaccionesTableAdmin from './TransaccionesTableAdmin';
+import DetalleTransaccionesTableAdmin from './DetalleTransaccionesTableAdmin';
+import AnalyticsOverview from './AnalyticsOverview';
 
 const SuperAdminDashboard = ({ onLogout, user }) => {
   const [openDropdowns, setOpenDropdowns] = useState({
@@ -13,12 +17,26 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
   });
   const [hoveredItem, setHoveredItem] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const toggleDropdown = (section) => {
     setOpenDropdowns(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
+  };
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
+    onLogout();
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   return (
@@ -40,10 +58,12 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
           <div 
             style={{
               ...styles.menuItem,
-              backgroundColor: hoveredItem === 'dashboard' ? '#f5f5f7' : 'transparent'
+              backgroundColor: hoveredItem === 'dashboard' ? '#f5f5f7' : 'transparent',
+              fontWeight: selectedSection === 'dashboard' ? 600 : 400
             }}
             onMouseEnter={() => setHoveredItem('dashboard')}
             onMouseLeave={() => setHoveredItem(null)}
+            onClick={() => setSelectedSection('dashboard')}
           >
             <span className="material-symbols-outlined" style={styles.menuIcon}>dashboard</span>
             <span style={styles.menuText}>Dashboard</span>
@@ -77,24 +97,15 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
                 <div 
                   style={{
                     ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'archivos' ? '#f0f0f0' : 'transparent'
+                    backgroundColor: hoveredItem === 'archivos' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'archivos' ? 600 : 400
                   }}
                   onMouseEnter={() => setHoveredItem('archivos')}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('archivos')}
                 >
                   <span className="material-symbols-outlined" style={styles.menuIcon}>deployed_code</span>
                   <span style={styles.menuText}>Archivos</span>
-                </div>
-                <div 
-                  style={{
-                    ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'imagenes' ? '#f0f0f0' : 'transparent'
-                  }}
-                  onMouseEnter={() => setHoveredItem('imagenes')}
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <span className="material-symbols-outlined" style={styles.menuIcon}>image</span>
-                  <span style={styles.menuText}>Imágenes de Archivos</span>
                 </div>
                 <div 
                   style={{
@@ -209,10 +220,12 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
                 <div 
                   style={{
                     ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'transacciones' ? '#f0f0f0' : 'transparent'
+                    backgroundColor: hoveredItem === 'transacciones' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'transacciones' ? 600 : 400
                   }}
                   onMouseEnter={() => setHoveredItem('transacciones')}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('transacciones')}
                 >
                   <span className="material-symbols-outlined" style={styles.menuIcon}>attach_money</span>
                   <span style={styles.menuText}>Transacciones</span>
@@ -220,10 +233,12 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
                 <div 
                   style={{
                     ...styles.menuSubItem,
-                    backgroundColor: hoveredItem === 'detalle' ? '#f0f0f0' : 'transparent'
+                    backgroundColor: hoveredItem === 'detalle' ? '#f0f0f0' : 'transparent',
+                    fontWeight: selectedSection === 'detalle' ? 600 : 400
                   }}
                   onMouseEnter={() => setHoveredItem('detalle')}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => setSelectedSection('detalle')}
                 >
                   <span className="material-symbols-outlined" style={styles.menuIcon}>contract</span>
                   <span style={styles.menuText}>Detalle de Transacción</span>
@@ -255,17 +270,71 @@ const SuperAdminDashboard = ({ onLogout, user }) => {
             ADMIN
           </div>
         </div>
+
+        {/* Navegación de configuración y logout */}
+        <div style={styles.bottomMenu}>
+          {/* Cerrar Sesión */}
+          <div 
+            style={{
+              ...styles.bottomMenuItem,
+              backgroundColor: hoveredItem === 'logout' ? '#fff5f5' : 'transparent'
+            }}
+            onMouseEnter={() => setHoveredItem('logout')}
+            onMouseLeave={() => setHoveredItem(null)}
+            onClick={handleLogoutClick}
+          >
+            <span className="material-symbols-outlined" style={styles.logoutIcon}>logout</span>
+            <span style={styles.logoutText}>Cerrar Sesión</span>
+          </div>
+        </div>
       </aside>
       
       {/* Contenido principal - ajustado sin header */}
       <div style={styles.content}>
+        {selectedSection === 'dashboard' && <AnalyticsOverview />}
+        {selectedSection === 'archivos' && <ArchivosTableAdmin />}
         {selectedSection === 'categorias' && <CategoriasArchivoTable />}
         {selectedSection === 'extensiones' && <ExtensionesArchivoTable />}
         {selectedSection === 'genero' && <GeneroUsuarioTable />}
         {selectedSection === 'metodos-pago' && <MetodosPagoTable />}
-        {selectedSection === 'usuarios' && <UsuariosTable />} {/* 🆕 AGREGAR USUARIOS TABLE */}
+        {selectedSection === 'usuarios' && <UsuariosTable />}
+        {selectedSection === 'transacciones' && <TransaccionesTableAdmin />}
+        {selectedSection === 'detalle' && <DetalleTransaccionesTableAdmin />}
+        {selectedSection === 'configuracion' && (
+          <div style={styles.welcomeCard}>
+            <h2 style={styles.sectionTitle}>Configuración</h2>
+            <p style={styles.description}>
+              Aquí podrás gestionar tu perfil, cambiar tu contraseña y configurar las preferencias de tu cuenta.
+            </p>
+          </div>
+        )}
+        {!selectedSection && <AnalyticsOverview />}
         {/* Aquí irá el contenido del dashboard */}
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h3 style={styles.modalTitle}>Confirmar cierre de sesión</h3>
+            <p style={styles.modalMessage}>¿Estás seguro que quieres cerrar sesión?</p>
+            <div style={styles.modalButtons}>
+              <button
+                style={styles.modalCancelButton}
+                onClick={handleCancelLogout}
+              >
+                Cancelar
+              </button>
+              <button
+                style={styles.modalConfirmButton}
+                onClick={handleConfirmLogout}
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -415,6 +484,154 @@ const styles = {
 
   dropdownContent: {
     backgroundColor: '#fafafa'
+  },
+
+  // Estilos para el contenido principal
+  welcomeCard: {
+    backgroundColor: '#ffffff',
+    padding: '40px',
+    borderRadius: '12px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    textAlign: 'center',
+    maxWidth: '800px',
+    margin: '0 auto'
+  },
+
+  mainText: {
+    fontSize: '32px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+    margin: '0 0 20px 0',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  sectionTitle: {
+    fontSize: '24px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+    margin: '0 0 16px 0',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  description: {
+    fontSize: '14px',
+    color: '#86868b',
+    lineHeight: '1.6',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  // Estilos para el menú inferior (configuración y logout)
+  bottomMenu: {
+    borderTop: '1px solid #e5e5e7',
+    backgroundColor: '#ffffff'
+  },
+
+  bottomMenuItem: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '12px 24px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease'
+  },
+
+  bottomMenuIcon: {
+    fontSize: '20px',
+    color: '#1d1d1f',
+    marginRight: '12px',
+    fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20"
+  },
+
+  bottomMenuText: {
+    fontSize: '10.5px',
+    fontWeight: '400',
+    color: '#1d1d1f',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  logoutIcon: {
+    fontSize: '20px',
+    color: '#dc3545',
+    marginRight: '12px',
+    fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20"
+  },
+
+  logoutText: {
+    fontSize: '10.5px',
+    fontWeight: '400',
+    color: '#dc3545',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  // Modal styles
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000
+  },
+
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    padding: '24px',
+    maxWidth: '400px',
+    width: '90%',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  modalTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1d1d1f',
+    margin: '0 0 12px 0',
+    textAlign: 'center'
+  },
+
+  modalMessage: {
+    fontSize: '13px',
+    color: '#86868b',
+    margin: '0 0 20px 0',
+    textAlign: 'center',
+    lineHeight: '1.4'
+  },
+
+  modalButtons: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'center'
+  },
+
+  modalCancelButton: {
+    padding: '8px 18px',
+    backgroundColor: '#f5f5f7',
+    color: '#1d1d1f',
+    border: 'none',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+
+  modalConfirmButton: {
+    padding: '8px 18px',
+    backgroundColor: '#dc3545',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: '"Neutral Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   }
 };
 
